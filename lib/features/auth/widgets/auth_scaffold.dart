@@ -6,12 +6,14 @@ class AuthScaffold extends StatelessWidget {
   final String title;
   final Widget child;
   final Widget? footer;
+  final bool back;
 
   const AuthScaffold({
     super.key,
     required this.title,
     required this.child,
     this.footer,
+    this.back = false,
   });
 
   @override
@@ -21,17 +23,41 @@ class AuthScaffold extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(AppIcons.back, color: AppColors.darkGreen),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: back
+            ? IconButton(
+                icon: const Icon(AppIcons.back, color: AppColors.darkGreen),
+                onPressed: () => Navigator.pop(context),
+              )
+            : SizedBox.shrink(),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 10),
+            const SizedBox(height: 60),
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              // child: const Icon(AppIcons.chatBold, size: 60, color: AppColors.tealGreen),
+              child: Image.asset(
+                height: 60,
+                width: 60,
+                "assets/logo_green_transparent.png",
+              ),
+            ),
+            const SizedBox(height: 30),
             Text(
               title,
               style: const TextStyle(

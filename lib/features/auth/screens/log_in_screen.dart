@@ -35,14 +35,18 @@ class _LogInScreenState extends State<LogInScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      await _auth.logIn(phoneNumber: _phoneCtrl.text.trim(), password: _passCtrl.text);
+      await _auth.logIn(
+        phoneNumber: _phoneCtrl.text.trim(),
+        password: _passCtrl.text,
+      );
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const ChatsScreen()),
         (_) => false,
       );
     } catch (e) {
-      if (mounted) showAppSnackBar(context, cleanErrorMessage(e), isError: true);
+      if (mounted)
+        showAppSnackBar(context, cleanErrorMessage(e), isError: true);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -52,20 +56,26 @@ class _LogInScreenState extends State<LogInScreen> {
   Widget build(BuildContext context) {
     return AuthScaffold(
       title: 'DTN Chat',
-      footer: Center(
-        child: TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text.rich(
-            TextSpan(
-              text: "Don't have an account? ",
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
-              children: [
-                TextSpan(text: 'Sign Up', style: TextStyle(color: AppColors.darkGreen, fontWeight: FontWeight.w600)),
-              ],
-            ),
-          ),
-        ),
-      ),
+      // footer: Center(
+      //   child: TextButton(
+      //     onPressed: () => Navigator.pop(context),
+      //     child: const Text.rich(
+      //       TextSpan(
+      //         text: "Don't have an account? ",
+      //         style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
+      //         children: [
+      //           TextSpan(
+      //             text: 'Sign Up',
+      //             style: TextStyle(
+      //               color: AppColors.darkGreen,
+      //               fontWeight: FontWeight.w600,
+      //             ),
+      //           ),
+      //         ],
+      //       ),
+      //     ),
+      //   ),
+      // ),
       child: Form(
         key: _formKey,
         child: Column(
@@ -75,7 +85,7 @@ class _LogInScreenState extends State<LogInScreen> {
               keyboardType: TextInputType.phone,
               decoration: AppStyles.inputDecoration(
                 label: 'Phone Number',
-                hint: '+212 6XX XXX XXX',
+                hint: '06XX XXX XXX',
                 prefixIcon: AppIcons.phone,
               ),
               validator: FormValidators.phone,
@@ -89,14 +99,23 @@ class _LogInScreenState extends State<LogInScreen> {
                 hint: 'Enter your password',
                 prefixIcon: AppIcons.lock,
                 suffixIcon: IconButton(
-                  icon: Icon(_hidePass ? AppIcons.eyeOff : AppIcons.eye, color: AppColors.textSecondary, size: 22),
+                  icon: Icon(
+                    _hidePass ? AppIcons.eyeOff : AppIcons.eye,
+                    color: AppColors.textSecondary,
+                    size: 22,
+                  ),
                   onPressed: () => setState(() => _hidePass = !_hidePass),
                 ),
               ),
-              validator: (v) => v == null || v.isEmpty ? 'Please enter your password' : null,
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Please enter your password' : null,
             ),
             const SizedBox(height: 40),
-            PrimaryButton(label: 'Log In', loading: _loading, onPressed: _logIn),
+            PrimaryButton(
+              label: 'Log In',
+              loading: _loading,
+              onPressed: _logIn,
+            ),
           ],
         ),
       ),

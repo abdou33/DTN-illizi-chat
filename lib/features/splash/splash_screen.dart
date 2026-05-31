@@ -1,3 +1,4 @@
+import 'package:dtn_whatsapp_clone/features/auth/screens/log_in_screen.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_icons.dart';
@@ -13,7 +14,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late final AnimationController _logoCtrl;
   late final AnimationController _fadeCtrl;
   late final Animation<double> _logoScale;
@@ -23,11 +25,25 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    _logoCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
-    _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
-    _logoScale = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _logoCtrl, curve: Curves.elasticOut));
-    _logoOpacity = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(parent: _logoCtrl, curve: const Interval(0, 0.5)));
-    _fadeOut = Tween<double>(begin: 1, end: 0).animate(CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut));
+    _logoCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _fadeCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _logoScale = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _logoCtrl, curve: Curves.elasticOut));
+    _logoOpacity = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _logoCtrl, curve: const Interval(0, 0.5)),
+    );
+    _fadeOut = Tween<double>(
+      begin: 1,
+      end: 0,
+    ).animate(CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut));
     _logoCtrl.forward();
     _goNext();
   }
@@ -41,8 +57,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     final loggedIn = AuthService().currentUser != null;
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, a, __) => loggedIn ? const ChatsScreen() : const WelcomeScreen(),
-        transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
+        pageBuilder: (_, a, __) =>
+            loggedIn ? const ChatsScreen() : const LogInScreen(), // WelcomeScreen previously
+        transitionsBuilder: (_, a, __, child) =>
+            FadeTransition(opacity: a, child: child),
         transitionDuration: const Duration(milliseconds: 600),
       ),
     );
@@ -83,7 +101,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         ),
                       ],
                     ),
-                    child: const Icon(AppIcons.chatBold, size: 60, color: AppColors.tealGreen),
+                    // child: const Icon(AppIcons.chatBold, size: 60, color: AppColors.tealGreen),
+                    child: Image.asset(
+                      height: 60,
+                      width: 60,
+                      "assets/logo_green_transparent.png",
+                    ),
                   ),
                 ),
               ),
