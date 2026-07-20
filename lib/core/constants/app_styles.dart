@@ -55,16 +55,11 @@ class AppStyles {
     Widget? suffixIcon,
   }) {
     return InputDecoration(
+      counterText: '',
       labelText: label,
       hintText: hint,
-      labelStyle: const TextStyle(
-        color: AppColors.textSecondary,
-        fontSize: 15,
-      ),
-      hintStyle: const TextStyle(
-        color: AppColors.textLight,
-        fontSize: 15,
-      ),
+      labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 15),
+      hintStyle: const TextStyle(color: AppColors.textLight, fontSize: 15),
       prefixIcon: prefixIcon != null
           ? Icon(prefixIcon, color: AppColors.darkGreen, size: 22)
           : null,
@@ -74,11 +69,15 @@ class AppStyles {
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.iosSeparator.withValues(alpha: 0.5)),
+        borderSide: BorderSide(
+          color: AppColors.iosSeparator.withValues(alpha: 0.5),
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: AppColors.iosSeparator.withValues(alpha: 0.5)),
+        borderSide: BorderSide(
+          color: AppColors.iosSeparator.withValues(alpha: 0.5),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -101,9 +100,7 @@ class AppStyles {
     foregroundColor: AppColors.white,
     elevation: 0,
     padding: const EdgeInsets.symmetric(vertical: 16),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(14),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     textStyle: buttonText,
   );
 
@@ -111,9 +108,7 @@ class AppStyles {
     foregroundColor: AppColors.darkGreen,
     side: const BorderSide(color: AppColors.darkGreen, width: 1.5),
     padding: const EdgeInsets.symmetric(vertical: 16),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(14),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     textStyle: buttonText.copyWith(color: AppColors.darkGreen),
   );
 }

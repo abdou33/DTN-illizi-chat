@@ -55,7 +55,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 title: const Text('Log Out', style: TextStyle(color: AppColors.error)),
                 onTap: () async {
                   Navigator.pop(ctx);
-                  await _auth.logOut();
+                  // await _auth.logOut();
                   if (!mounted) return;
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const WelcomeScreen()),

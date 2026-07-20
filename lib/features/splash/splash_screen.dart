@@ -1,4 +1,5 @@
 import 'package:dtn_whatsapp_clone/features/auth/screens/log_in_screen.dart';
+import 'package:dtn_whatsapp_clone/features/auth/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_icons.dart';
@@ -58,7 +59,8 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, a, __) =>
-            loggedIn ? const ChatsScreen() : const LogInScreen(), // WelcomeScreen previously
+            loggedIn ? const ChatsScreen() : const WelcomeScreen(), // WelcomeScreen previously
+            // loggedIn ? const ChatsScreen() : const LogInScreen(), // WelcomeScreen previously
         transitionsBuilder: (_, a, __, child) =>
             FadeTransition(opacity: a, child: child),
         transitionDuration: const Duration(milliseconds: 600),

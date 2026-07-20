@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/user_model.dart';
 import 'local_db.dart';
 
@@ -11,16 +13,30 @@ class AuthService {
     required String name,
     required String phoneNumber,
     required String password,
-  }) =>
-      _db.signUp(name: name, phoneNumber: phoneNumber, password: password);
+  }) => _db.signUp(name: name, phoneNumber: phoneNumber, password: password);
 
-  Future<UserModel> logIn({
+  Future<bool> logIn({
     required String phoneNumber,
     required String password,
-  }) =>
-      _db.logIn(phoneNumber: phoneNumber, password: password);
+  }) async {
+    _db.logIn(phoneNumber: phoneNumber, password: password);
+    return true;
+  }
 
-  Future<void> logOut() => _db.logOut();
+  static Future<bool> logout() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool removed = await prefs.remove("login_token");
+    return removed;
+  }
+
+  static Future<bool> add_token(String token) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool saved = await prefs.setString(
+      "login_token",
+      token.substring(token.indexOf('|') + 1, token.length),
+    );
+    return saved;
+  }
 
   Future<UserModel?> getCurrentUserData() async => _db.currentUser;
 
@@ -28,10 +44,14 @@ class AuthService {
     String? name,
     String? about,
     String? profileImageUrl,
-  }) =>
-      _db.updateProfile(name: name, about: about, profileImageUrl: profileImageUrl);
+  }) => _db.updateProfile(
+    name: name,
+    about: about,
+    profileImageUrl: profileImageUrl,
+  );
 
-  Future<List<UserModel>> searchUsers(String query) => Future.value(_db.searchUsers(query));
+  Future<List<UserModel>> searchUsers(String query) =>
+      Future.value(_db.searchUsers(query));
 
   List<UserModel> get otherUsers {
     final id = _db.currentUser?.uid;

@@ -87,16 +87,6 @@ class LocalDb extends ChangeNotifier {
     return currentUser!;
   }
 
-  Future<void> logOut() async {
-    if (currentUser != null) {
-      currentUser = currentUser!.copyWith(isOnline: false, lastSeen: DateTime.now());
-      _updateUserInList(currentUser!);
-    }
-    currentUser = null;
-    notifyListeners();
-    await _save();
-  }
-
   Future<void> updateProfile({
     String? name,
     String? about,
