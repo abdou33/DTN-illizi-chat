@@ -1,69 +1,39 @@
 class UserModel {
-  final String uid;
+  final String id;
   final String name;
-  final String phoneNumber;
-  final String? profileImageUrl;
-  final String? about;
-  final bool isOnline;
+  final String phonenumber;
+  final String? photo;
   final DateTime lastSeen;
-  final DateTime createdAt;
+  final DateTime created_at;
 
   UserModel({
-    required this.uid,
+    required this.id,
     required this.name,
-    required this.phoneNumber,
-    this.profileImageUrl,
-    this.about,
-    this.isOnline = false,
+    required this.phonenumber,
+    this.photo,
     required this.lastSeen,
-    required this.createdAt,
+    required this.created_at,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      uid: map['uid'] ?? '',
+      id: map['uid'] ?? '',
       name: map['name'] ?? '',
-      phoneNumber: map['phoneNumber'] ?? '',
-      profileImageUrl: map['profileImageUrl'],
-      about: map['about'] ?? 'Hey there! I am using DTN Chat',
-      isOnline: map['isOnline'] ?? false,
+      phonenumber: map['phonenumber'] ?? '',
+      photo: map['photo'],
       lastSeen: map['lastSeen'] != null ? DateTime.parse(map['lastSeen']) : DateTime.now(),
-      createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt']) : DateTime.now(),
+      created_at: map['created_at'] != null ? DateTime.parse(map['created_at']) : DateTime.now(),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
+      'uid': id,
       'name': name,
-      'phoneNumber': phoneNumber,
-      'profileImageUrl': profileImageUrl,
-      'about': about ?? 'Hey there! I am using DTN Chat',
-      'isOnline': isOnline,
+      'phonenumber': phonenumber,
+      'photo': photo,
       'lastSeen': lastSeen.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
+      'created_at': created_at.toIso8601String(),
     };
-  }
-
-  UserModel copyWith({
-    String? uid,
-    String? name,
-    String? phoneNumber,
-    String? profileImageUrl,
-    String? about,
-    bool? isOnline,
-    DateTime? lastSeen,
-    DateTime? createdAt,
-  }) {
-    return UserModel(
-      uid: uid ?? this.uid,
-      name: name ?? this.name,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
-      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
-      about: about ?? this.about,
-      isOnline: isOnline ?? this.isOnline,
-      lastSeen: lastSeen ?? this.lastSeen,
-      createdAt: createdAt ?? this.createdAt,
-    );
   }
 }

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.dtn" "\0"
-            VALUE "FileDescription", "dtn_whatsapp_clone" "\0"
+            VALUE "FileDescription", "dtn_chat" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "dtn_whatsapp_clone" "\0"
+            VALUE "InternalName", "dtn_chat" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.dtn. All rights reserved." "\0"
-            VALUE "OriginalFilename", "dtn_whatsapp_clone.exe" "\0"
-            VALUE "ProductName", "dtn_whatsapp_clone" "\0"
+            VALUE "OriginalFilename", "dtn_chat.exe" "\0"
+            VALUE "ProductName", "dtn_chat" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -47,7 +47,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 title: const Text('Profile'),
                 onTap: () {
                   Navigator.pop(ctx);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+                  // Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
                 },
               ),
               ListTile(

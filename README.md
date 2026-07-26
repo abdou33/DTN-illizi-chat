@@ -1,4 +1,4 @@
-# dtn_whatsapp_clone
+# dtn_chat
 
 A new Flutter project.
 

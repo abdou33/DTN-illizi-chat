@@ -1,5 +1,5 @@
-import 'package:dtn_whatsapp_clone/features/auth/screens/log_in_screen.dart';
-import 'package:dtn_whatsapp_clone/features/auth/screens/register_screen.dart';
+import 'package:dtn_chat/features/auth/screens/log_in_screen.dart';
+import 'package:dtn_chat/features/auth/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_icons.dart';
@@ -50,17 +50,18 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _goNext() async {
-    await LocalDb().init();
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
     await _fadeCtrl.forward();
     if (!mounted) return;
-    final loggedIn = AuthService().currentUser != null;
+    bool loggedIn = await AuthService().userisloggedin();
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, a, __) =>
-            loggedIn ? const ChatsScreen() : const WelcomeScreen(), // WelcomeScreen previously
-            // loggedIn ? const ChatsScreen() : const LogInScreen(), // WelcomeScreen previously
+            // loggedIn ? const ChatsScreen() : const WelcomeScreen(), // WelcomeScreen previously
+            loggedIn
+            ? const ChatsScreen()
+            : const LogInScreen(), // WelcomeScreen previously
         transitionsBuilder: (_, a, __, child) =>
             FadeTransition(opacity: a, child: child),
         transitionDuration: const Duration(milliseconds: 600),

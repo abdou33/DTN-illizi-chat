@@ -21,8 +21,8 @@ class UserAvatar extends StatelessWidget {
     final avatar = CircleAvatar(
       radius: radius,
       backgroundColor: AppColors.primaryGreen.withValues(alpha: 0.15),
-      backgroundImage: mediaImageProvider(user.profileImageUrl),
-      child: user.profileImageUrl == null
+      backgroundImage: mediaImageProvider(user.photo),
+      child: user.photo == null
           ? Text(
               nameInitials(user.name),
               style: TextStyle(

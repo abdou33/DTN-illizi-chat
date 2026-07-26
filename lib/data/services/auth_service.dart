@@ -1,60 +1,61 @@
+import 'package:dtn_chat/data/services/shared_preferences_service.dart';
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_model.dart';
 import 'local_db.dart';
 
-/// Thin API over [LocalDb] for authentication and users.
 class AuthService {
-  final LocalDb _db = LocalDb();
+  static String? token;
 
-  UserModel? get currentUser => _db.currentUser;
-
-  Future<UserModel> signUp({
-    required String name,
-    required String phoneNumber,
-    required String password,
-  }) => _db.signUp(name: name, phoneNumber: phoneNumber, password: password);
-
-  Future<bool> logIn({
-    required String phoneNumber,
-    required String password,
-  }) async {
-    _db.logIn(phoneNumber: phoneNumber, password: password);
-    return true;
+  static Future<void> loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    token = prefs.getString("login_token");
   }
 
-  static Future<bool> logout() async {
+  static Future<bool> setToken(String newToken) async {
+    token = newToken;
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool removed = await prefs.remove("login_token");
-    return removed;
-  }
 
-  static Future<bool> add_token(String token) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
     bool saved = await prefs.setString(
       "login_token",
-      token.substring(token.indexOf('|') + 1, token.length),
+      newToken.substring(newToken.indexOf('|') + 1, newToken.length),
     );
     return saved;
   }
 
-  Future<UserModel?> getCurrentUserData() async => _db.currentUser;
+  static Future<void> clearToken() async {
+    token = null;
 
-  Future<void> updateProfile({
-    String? name,
-    String? about,
-    String? profileImageUrl,
-  }) => _db.updateProfile(
-    name: name,
-    about: about,
-    profileImageUrl: profileImageUrl,
-  );
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove("login_token");
+  }
 
-  Future<List<UserModel>> searchUsers(String query) =>
-      Future.value(_db.searchUsers(query));
+  Future<bool> userisloggedin() async {
+    final prefs = await SharedPreferences.getInstance();
 
-  List<UserModel> get otherUsers {
-    final id = _db.currentUser?.uid;
-    return _db.users.where((u) => u.uid != id).toList();
+    return prefs.getString("user") != null &&
+        prefs.getString("login_token") != null;
+  }
+
+  Future<void> login({required dynamic user, required String token}) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool userissaved = await prefs.setString("user", user);
+    bool tokenissaved = await setToken(token);
+    bool issaved = userissaved && tokenissaved;
+
+    if (!issaved) {
+      throw Exception('an error was thrown when saving the login infos');
+    }
+  }
+
+  static Future<void> logout() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool userwasremoved = await prefs.remove("user");
+    bool tokenwasremoved = await prefs.remove("login_token");
+    bool isremoved = userwasremoved && tokenwasremoved;
+    if (!isremoved) {
+      throw Exception('an error was thrown when removing the login infos');
+    }
   }
 }

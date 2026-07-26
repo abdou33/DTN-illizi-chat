@@ -1,4 +1,4 @@
-package com.dtn.dtn_whatsapp_clone
+package com.dtn.dtn_chat
 
 import io.flutter.embedding.android.FlutterActivity
 

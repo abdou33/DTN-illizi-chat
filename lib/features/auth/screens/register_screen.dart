@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:dtn_whatsapp_clone/core/constants/app_urls.dart';
-import 'package:dtn_whatsapp_clone/data/services/token_service.dart';
+import 'package:dtn_chat/core/constants/app_urls.dart';
+import 'package:dtn_chat/data/services/shared_preferences_service.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
@@ -50,32 +50,28 @@ class RegisterScreenState extends State<RegisterScreen> {
           'name': _nameCtrl.text,
           'phonenumber': _phoneCtrl.text.trim(),
           'password': _passCtrl.text,
-          'photo': "",
         },
         options: Options(
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
           validateStatus: (status) => true, // accept all codes
         ),
       );
 
       if (response.statusCode == 201) {
-        bool tokenissaved = await TokenService.add_token(
-          response.data['token'],
+        await _auth.login(
+          user: response.data["user"],
+          token: response.data['token'],
         );
-        if (!tokenissaved) {
-          throw Exception('an error was thrown when saving the login token');
-        }
       } else {
         throw Exception(
           response.data['error']?.toString() ??
               'Request failed with status code ${response.statusCode}',
         );
       }
-      // await _auth.signUp(
-      //   name: _nameCtrl.text.trim(),
-      //   phoneNumber: _phoneCtrl.text.trim(),
-      //   password: _passCtrl.text,
-      // );
+
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const ChatsScreen()),
@@ -134,7 +130,7 @@ class RegisterScreenState extends State<RegisterScreen> {
               maxLength: 10,
               decoration: AppStyles.inputDecoration(
                 label: 'Phone Number',
-                hint: '+212 6XX XXX XXX',
+                hint: '06XX XXX XXX',
                 prefixIcon: AppIcons.phone,
               ),
               validator: FormValidators.phone,
