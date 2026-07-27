@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dtn_chat/data/services/shared_preferences_service.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,18 +31,20 @@ class AuthService {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove("login_token");
+    await prefs.remove("user");
   }
 
   Future<bool> userisloggedin() async {
     final prefs = await SharedPreferences.getInstance();
-
     return prefs.getString("user") != null &&
         prefs.getString("login_token") != null;
   }
 
   Future<void> login({required dynamic user, required String token}) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool userissaved = await prefs.setString("user", user);
+    // bool userissaved = await prefs.setString("user", user);
+    bool userissaved = await prefs.setString("user", jsonEncode(user));
+
     bool tokenissaved = await setToken(token);
     bool issaved = userissaved && tokenissaved;
 

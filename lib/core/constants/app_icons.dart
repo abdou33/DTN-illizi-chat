@@ -38,4 +38,7 @@ abstract final class AppIcons {
   static const document = IconsaxPlusLinear.document;
   static const play = IconsaxPlusLinear.play_circle;
   static const pause = IconsaxPlusLinear.pause_circle;
+
+  //contact
+  static const contacts = IconsaxPlusLinear.user_square;
 }

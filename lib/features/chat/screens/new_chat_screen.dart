@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
 import 'package:dtn_chat/core/utils/ui_utils.dart';
+import 'package:dtn_chat/data/services/contacts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../../../core/constants/app_colors.dart';
@@ -26,11 +27,17 @@ class _NewChatScreenState extends State<NewChatScreen> {
   final _chat = ChatService();
   final _searchCtrl = TextEditingController();
   List<UserModel> _results = [];
+  List<UserModel> _contacts_results = [];
   bool _searching = false;
 
   final dio = Dio();
   Timer? _searchDebounce;
   var logger = Logger();
+  @override
+  void initState() {
+    getcontacts();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -88,14 +95,83 @@ class _NewChatScreenState extends State<NewChatScreen> {
   }
 
   Future<void> _openChat(UserModel user) async {
+    print("user: ${user.toMap().toString()}");
     // final chatId = await _chat.getOrCreateChat(user.id);
-    // if (!mounted) return;
-    // Navigator.pushReplacement(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => ConversationScreen(otherUser: user, chatId: chatId),
-    //   ),
-    // );
+    try {
+      final response = await dio.post(
+        "${AppUrls.api_url}/api/conversations/private",
+        data: {'user_id': user.id},
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${AuthService.token}',
+          },
+          validateStatus: (status) => true, // accept all codes
+        ),
+      );
+      logger.i("response: ${response.data}");
+
+      if (response.statusCode == 200) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ConversationScreen(
+              otherUser: user,
+              chatId: response.data["id"],
+            ),
+          ),
+        );
+      } else {
+        throw Exception(
+          response.data['error']?.toString() ??
+              'Request failed with status code ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (mounted)
+        showAppSnackBar(context, cleanErrorMessage(e), isError: true);
+    }
+    if (!mounted) return;
+  }
+
+  void getcontacts() async {
+    try {
+      final contacts = await ContactsService.getPhoneNumbers();
+      print(contacts);
+      if (contacts.isNotEmpty) {
+        final response = await dio.post(
+          "${AppUrls.api_url}/api/contacts/sync",
+          data: {"contacts": contacts},
+          options: Options(
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+              "Authorization": "Bearer ${AuthService.token}",
+            },
+            validateStatus: (status) => true,
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          setState(() {
+            _contacts_results = (response.data as List)
+                .map((e) => UserModel.fromMap(e))
+                .toList();
+          });
+          print(_contacts_results);
+        } else {
+          throw Exception(
+            response.data is Map<String, dynamic>
+                ? response.data["error"]?.toString() ??
+                      "Request failed with status ${response.statusCode}"
+                : response.data.toString(),
+          );
+        }
+      }
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override
@@ -113,6 +189,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
         ),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
@@ -144,12 +221,25 @@ class _NewChatScreenState extends State<NewChatScreen> {
           Expanded(
             child: _searchCtrl.text.isNotEmpty
                 ? _buildSearchResults()
-                // : ListenableBuilder(
-                //     listenable: LocalDb(),
-                //     builder: (_, __) => _buildUserList(_auth.otherUsers),
-                //   ),
-                : Container(color: Colors.red),
+                : SizedBox.shrink(),
           ),
+
+          _contacts_results.isEmpty
+              ? SizedBox.shrink()
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    spacing: 10,
+                    children: [
+                      const Icon(
+                        AppIcons.contacts,
+                        color: AppColors.textSecondary,
+                      ),
+                      Text("your Contacts on DTN chat:"),
+                    ],
+                  ),
+                ),
+          Expanded(child: _buildContactResults()),
         ],
       ),
     );
@@ -172,6 +262,13 @@ class _NewChatScreenState extends State<NewChatScreen> {
     return _buildUserList(_results);
   }
 
+  Widget _buildContactResults() {
+    if (_contacts_results.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return _buildUserList(_contacts_results);
+  }
+
   Widget _buildUserList(List<UserModel> users) {
     if (users.isEmpty) {
       return const Center(
@@ -182,6 +279,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
       );
     }
     return ListView.builder(
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: users.length,
       itemBuilder: (_, i) {
         final user = users[i];

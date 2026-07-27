@@ -56,6 +56,7 @@ class _LogInScreenState extends State<LogInScreen> {
       );
 
       if (response.statusCode == 200) {
+        print("response:::: ${response.data}");
         await _auth.login(
           user: response.data["user"],
           token: response.data['token'],

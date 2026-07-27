@@ -25,6 +25,7 @@ dependencies:
   audioplayers: ^6.6.0
   shared_preferences: ^2.5.5
   dio: ^5.10.0
+  flutter_contacts: ^2.3.0
   
   logger: ^2.7.0
 
