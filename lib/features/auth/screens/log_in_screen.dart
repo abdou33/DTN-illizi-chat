@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
 import 'package:dtn_chat/data/services/shared_preferences_service.dart';
+import 'package:dtn_chat/features/auth/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
@@ -87,7 +88,10 @@ class _LogInScreenState extends State<LogInScreen> {
       title: 'DTN Chat',
       footer: Center(
         child: TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const RegisterScreen()),
+            (_) => false,
+          ),
           child: const Text.rich(
             TextSpan(
               text: "Don't have an account? ",

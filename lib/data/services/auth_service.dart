@@ -9,10 +9,20 @@ import 'local_db.dart';
 
 class AuthService {
   static String? token;
+  static UserModel? currentUser;
 
   static Future<void> loadToken() async {
     final prefs = await SharedPreferences.getInstance();
+
     token = prefs.getString("login_token");
+
+    final userJson = prefs.getString("user");
+    if (userJson != null) {
+      currentUser = UserModel.fromMap(jsonDecode(userJson));
+    } else {
+      currentUser = null;
+    }
+    print("currentuser id:::::: ${currentUser?.id}");
   }
 
   static Future<bool> setToken(String newToken) async {
@@ -42,7 +52,6 @@ class AuthService {
 
   Future<void> login({required dynamic user, required String token}) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    // bool userissaved = await prefs.setString("user", user);
     bool userissaved = await prefs.setString("user", jsonEncode(user));
 
     bool tokenissaved = await setToken(token);
@@ -53,7 +62,7 @@ class AuthService {
     }
   }
 
-  static Future<void> logout() async {
+  Future<void> logout() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     bool userwasremoved = await prefs.remove("user");
     bool tokenwasremoved = await prefs.remove("login_token");

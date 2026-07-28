@@ -112,13 +112,13 @@ class _NewChatScreenState extends State<NewChatScreen> {
       );
       logger.i("response: ${response.data}");
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (_) => ConversationScreen(
               otherUser: user,
-              chatId: response.data["id"],
+              chatId: "${response.data["id"]}",
             ),
           ),
         );

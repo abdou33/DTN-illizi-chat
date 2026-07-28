@@ -1,9 +1,10 @@
+import 'package:dtn_chat/data/models/user_model.dart';
+
 class ChatModel {
   final String chatId;
-  final List<String> participants;
+  final List<UserModel> participants;
   final String lastMessage;
   final String lastMessageType;
-  final String lastMessageSenderId;
   final DateTime lastMessageTime;
   final int unreadCount;
 
@@ -12,20 +13,21 @@ class ChatModel {
     required this.participants,
     required this.lastMessage,
     required this.lastMessageType,
-    required this.lastMessageSenderId,
     required this.lastMessageTime,
     this.unreadCount = 0,
   });
 
   factory ChatModel.fromMap(Map<String, dynamic> map) {
+    final lastMessage = map['last_message'];
     return ChatModel(
-      chatId: map['chatId'] ?? '',
-      participants: List<String>.from(map['participants'] ?? []),
-      lastMessage: map['lastMessage'] ?? '',
-      lastMessageType: map['lastMessageType'] ?? 'text',
-      lastMessageSenderId: map['lastMessageSenderId'] ?? '',
-      lastMessageTime: map['lastMessageTime'] != null
-          ? DateTime.parse(map['lastMessageTime'])
+      chatId: "${map['id']}" ?? '',
+      participants: (map['users'] as List)
+          .map((e) => UserModel.fromMap(e))
+          .toList(),
+      lastMessage: lastMessage?['message'] ?? '',
+      lastMessageType: lastMessage?['type'] ?? 'text',
+      lastMessageTime: lastMessage?['created_at'] != null
+          ? DateTime.parse(lastMessage['created_at'])
           : DateTime.now(),
       unreadCount: map['unreadCount'] ?? 0,
     );
@@ -37,7 +39,6 @@ class ChatModel {
       'participants': participants,
       'lastMessage': lastMessage,
       'lastMessageType': lastMessageType,
-      'lastMessageSenderId': lastMessageSenderId,
       'lastMessageTime': lastMessageTime.toIso8601String(),
       'unreadCount': unreadCount,
     };

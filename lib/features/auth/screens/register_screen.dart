@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
 import 'package:dtn_chat/data/services/shared_preferences_service.dart';
+import 'package:dtn_chat/features/auth/screens/log_in_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
@@ -91,7 +92,10 @@ class RegisterScreenState extends State<RegisterScreen> {
       title: 'Create Account',
       footer: Center(
         child: TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LogInScreen()),
+            (_) => false,
+          ),
           child: const Text.rich(
             TextSpan(
               text: 'Already have an account? ',

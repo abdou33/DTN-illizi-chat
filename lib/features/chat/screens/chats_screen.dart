@@ -1,4 +1,9 @@
+import 'package:dio/dio.dart';
+import 'package:dtn_chat/core/constants/app_urls.dart';
+import 'package:dtn_chat/core/utils/ui_utils.dart';
+import 'package:dtn_chat/data/models/chat_model.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -21,6 +26,15 @@ class _ChatsScreenState extends State<ChatsScreen> {
   final _searchCtrl = TextEditingController();
   bool _searching = false;
   String _query = '';
+  List<ChatModel> chats = [];
+  final dio = Dio();
+  var logger = Logger();
+
+  @override
+  void initState() {
+    _getchats();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -52,10 +66,13 @@ class _ChatsScreenState extends State<ChatsScreen> {
               ),
               ListTile(
                 leading: const Icon(AppIcons.logout, color: AppColors.error),
-                title: const Text('Log Out', style: TextStyle(color: AppColors.error)),
+                title: const Text(
+                  'Log Out',
+                  style: TextStyle(color: AppColors.error),
+                ),
                 onTap: () async {
                   Navigator.pop(ctx);
-                  // await _auth.logOut();
+                  await _auth.logout();
                   if (!mounted) return;
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const WelcomeScreen()),
@@ -71,6 +88,51 @@ class _ChatsScreenState extends State<ChatsScreen> {
     );
   }
 
+  Future<void> _getchats() async {
+    setState(() {
+      _searching = true;
+      chats = [];
+    });
+    try {
+      final response = await dio.get(
+        "${AppUrls.api_url}/api/conversations",
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${AuthService.token}',
+          },
+          validateStatus: (status) => true, // accept all codes
+        ),
+      );
+      // logger.i("response: ${response.data}");
+
+      if (response.statusCode == 200) {
+        setState(() {
+          chats = (response.data as List)
+              .map((e) => ChatModel.fromMap(e))
+              .toList();
+        });
+      } else {
+        throw Exception(
+          response.data['error']?.toString() ??
+              'Request failed with status code ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      logger.e(e);
+      if (mounted)
+        showAppSnackBar(context, cleanErrorMessage(e), isError: true);
+    } finally {
+      if (mounted) setState(() => _searching = false);
+    }
+    // final users = await _auth.searchUsers(query.trim());
+    if (mounted)
+      setState(() {
+        _searching = false;
+      });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,13 +143,22 @@ class _ChatsScreenState extends State<ChatsScreen> {
             ? TextField(
                 controller: _searchCtrl,
                 autofocus: true,
-                decoration: const InputDecoration(hintText: 'Search...', border: InputBorder.none),
+                decoration: const InputDecoration(
+                  hintText: 'Search...',
+                  border: InputBorder.none,
+                ),
                 onChanged: (v) => setState(() => _query = v.toLowerCase()),
               )
-            : const Text('Chats', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
+            : const Text(
+                'Chats',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+              ),
         actions: [
           IconButton(
-            icon: Icon(_searching ? AppIcons.close : AppIcons.search, color: AppColors.darkGreen),
+            icon: Icon(
+              _searching ? AppIcons.close : AppIcons.search,
+              color: AppColors.darkGreen,
+            ),
             onPressed: () => setState(() {
               _searching = !_searching;
               if (!_searching) {
@@ -105,7 +176,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
       body: ListenableBuilder(
         listenable: LocalDb(),
         builder: (_, __) {
-          final chats = LocalDb().chats;
+          logger.w(chats.toList().toString());
           if (chats.isEmpty) {
             return const EmptyState(
               icon: AppIcons.chat,
@@ -116,7 +187,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
           return ListView.builder(
             padding: const EdgeInsets.only(top: 8),
             itemCount: chats.length,
-            itemBuilder: (_, i) => ChatListTile(chat: chats[i], searchQuery: _query),
+            itemBuilder: (_, i) =>
+                ChatListTile(chat: chats[i], searchQuery: _query),
           );
         },
       ),
