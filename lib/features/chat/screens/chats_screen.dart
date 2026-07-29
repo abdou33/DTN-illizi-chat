@@ -2,8 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
 import 'package:dtn_chat/core/utils/ui_utils.dart';
 import 'package:dtn_chat/data/models/chat_model.dart';
+import 'package:dtn_chat/data/models/message_model.dart';
+import 'package:dtn_chat/data/services/reverb_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/widgets/empty_state.dart';
@@ -24,6 +27,7 @@ class ChatsScreen extends StatefulWidget {
 class _ChatsScreenState extends State<ChatsScreen> {
   final _auth = AuthService();
   final _searchCtrl = TextEditingController();
+  late final Channel _userChannel;
   bool _searching = false;
   String _query = '';
   List<ChatModel> chats = [];
@@ -32,14 +36,42 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   @override
   void initState() {
-    _getchats();
     super.initState();
+    _getchats();
+    _listenForChatUpdates();
   }
 
   @override
   void dispose() {
     _searchCtrl.dispose();
+    final userId = AuthService.currentUser!.id;
+
+    ReverbService.client.unsubscribeFromChannel('private-user.$userId');
     super.dispose();
+  }
+
+  void _listenForChatUpdates() {
+    final userId = AuthService.currentUser!.id;
+
+    _userChannel = ReverbService.client.subscribeToPrivateChannel(
+      'private-user.$userId',
+    );
+
+    _userChannel.on('message.sent').listen((event) {
+      final data = event.data;
+
+      final message = MessageModel.fromMap(data['message']);
+
+      if (!mounted) return;
+
+      _updateChatList(message);
+    });
+  }
+
+  void _updateChatList(MessageModel message) {
+    setState(() {
+      // update your ChatModel here
+    });
   }
 
   void _openMenu() {

@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
+import 'package:dtn_chat/data/services/reverb_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/utils/ui_utils.dart';
@@ -42,6 +44,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   final _msgCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   final _picker = ImagePicker();
+  late final Channel _conversationChannel;
   final dio = Dio();
   var logger = Logger();
 
@@ -57,6 +60,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
     _myId = AuthService.currentUser?.id ?? '';
     // _chat.markMessagesAsRead(widget.chatId);
     _voice.init(() => setState(() {}));
+    _listenToConversation();
   }
 
   @override
@@ -64,6 +68,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
     _msgCtrl.dispose();
     _scrollCtrl.dispose();
     _voice.dispose();
+    ReverbService.client.unsubscribeFromChannel(
+      'private-conversation.${widget.chatId}',
+    );
     super.dispose();
   }
 
@@ -92,13 +99,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
         type: MessageType.text,
       );
       logger.i("msg content ${msg?.content}");
-      if (msg != null) {
-        logger.i("added msg to messages");
-        setState(() {
-          messages.add(msg);
-        });
-        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-      }
     } catch (e) {
       logger.e(e);
       if (mounted)
@@ -241,6 +241,26 @@ class _ConversationScreenState extends State<ConversationScreen> {
     } catch (e) {
       rethrow;
     }
+  }
+
+  void _listenToConversation() {
+    _conversationChannel = ReverbService.client.subscribeToPrivateChannel(
+      'private-conversation.${widget.chatId}',
+    );
+
+    _conversationChannel.on('message.sent').listen((event) {
+      final data = event.data;
+
+      final message = MessageModel.fromMap(data['message']);
+
+      if (!mounted) return;
+
+      setState(() {
+        messages.add(message);
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    });
   }
 
   @override
