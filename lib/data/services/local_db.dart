@@ -18,19 +18,11 @@ class LocalDb extends ChangeNotifier {
 
   UserModel? currentUser;
   List<UserModel> users = [];
-  List<ChatModel> _allChats = [];
   final Map<String, List<MessageModel>> _messagesByChat = {};
   final Map<String, String> _passwordsByPhone = {};
 
   bool _initialized = false;
 
-  List<ChatModel> get chats {
-    if (currentUser == null) return [];
-    return _allChats
-        .where((c) => c.participants.contains(currentUser!.id))
-        .toList()
-      ..sort((a, b) => b.lastMessageTime.compareTo(a.lastMessageTime));
-  }
 
   Future<void> init() async {
     if (_initialized) return;

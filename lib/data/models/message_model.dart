@@ -9,11 +9,10 @@ enum MessageType {
 class MessageModel {
   final String messageId;
   final String senderId;
-  final String receiverId;
   final String content;
   final MessageType type;
-  final String? fileName;
   final String? fileUrl;
+  // for ui affichage
   final int? fileSizeBytes;
   final DateTime timestamp;
   final bool isRead;
@@ -22,10 +21,8 @@ class MessageModel {
   MessageModel({
     required this.messageId,
     required this.senderId,
-    required this.receiverId,
     required this.content,
     required this.type,
-    this.fileName,
     this.fileUrl,
     this.fileSizeBytes,
     required this.timestamp,
@@ -43,19 +40,17 @@ class MessageModel {
     }
 
     return MessageModel(
-      messageId: map['messageId'] ?? '',
-      senderId: map['senderId'] ?? '',
-      receiverId: map['receiverId'] ?? '',
-      content: map['content'] ?? '',
+      messageId: "${map['id']}" ?? '',
+      senderId: "${map['sender_id']}" ?? '',
+      content: map['message'] ?? '',
       type: MessageType.values.firstWhere(
         (e) => e.name == (map['type'] ?? 'text'),
         orElse: () => MessageType.text,
       ),
-      fileName: map['fileName'],
-      fileUrl: map['fileUrl'],
-      fileSizeBytes: map['fileSizeBytes'],
+      fileUrl: map['attachment'],
+      fileSizeBytes: map['file_size'],
       timestamp: timestamp,
-      isRead: map['isRead'] ?? false,
+      isRead: map['is_read'] == 1,
       audioDurationMs: map['audioDurationMs'],
     );
   }
@@ -64,10 +59,8 @@ class MessageModel {
     return {
       'messageId': messageId,
       'senderId': senderId,
-      'receiverId': receiverId,
       'content': content,
       'type': type.name,
-      'fileName': fileName,
       'fileUrl': fileUrl,
       'fileSizeBytes': fileSizeBytes,
       'timestamp': timestamp.toIso8601String(),

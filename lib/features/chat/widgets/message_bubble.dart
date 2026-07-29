@@ -104,7 +104,7 @@ class _MessageContent extends StatelessWidget {
       case MessageType.video:
         return _MediaRow(
           icon: AppIcons.play,
-          title: message.fileName ?? 'Video',
+          title: message.fileUrl ?? 'Video',
           subtitle: 'Tap to play',
         );
       case MessageType.audio:
@@ -124,7 +124,7 @@ class _MessageContent extends StatelessWidget {
       case MessageType.document:
         return _MediaRow(
           icon: AppIcons.document,
-          title: message.fileName ?? 'Document',
+          title: message.fileUrl ?? 'Document',
           subtitle: message.fileSizeBytes != null
               ? '${(message.fileSizeBytes! / 1024).toStringAsFixed(1)} KB'
               : 'Document',

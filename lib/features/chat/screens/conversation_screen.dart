@@ -1,8 +1,11 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:dtn_chat/core/constants/app_urls.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/utils/ui_utils.dart';
@@ -22,7 +25,11 @@ class ConversationScreen extends StatefulWidget {
   final UserModel otherUser;
   final String chatId;
 
-  const ConversationScreen({super.key, required this.otherUser, required this.chatId});
+  const ConversationScreen({
+    super.key,
+    required this.otherUser,
+    required this.chatId,
+  });
 
   @override
   State<ConversationScreen> createState() => _ConversationScreenState();
@@ -35,14 +42,19 @@ class _ConversationScreenState extends State<ConversationScreen> {
   final _msgCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   final _picker = ImagePicker();
+  final dio = Dio();
+  var logger = Logger();
 
   late final String _myId;
   bool _sending = false;
 
+  List<MessageModel> messages = [];
+
   @override
   void initState() {
     super.initState();
-    // _myId = AuthService().currentUser?.uid ?? '';
+    getMessagesForChat();
+    _myId = AuthService.currentUser?.id ?? '';
     // _chat.markMessagesAsRead(widget.chatId);
     _voice.init(() => setState(() {}));
   }
@@ -72,14 +84,28 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Future<void> _sendText() async {
     final text = _msgCtrl.text.trim();
     if (text.isEmpty) return;
+
+    try {
+      MessageModel? msg = await _chat.sendMessage(
+        chatId: widget.chatId,
+        content: text,
+        type: MessageType.text,
+      );
+      logger.i("msg content ${msg?.content}");
+      if (msg != null) {
+        logger.i("added msg to messages");
+        setState(() {
+          messages.add(msg);
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      }
+    } catch (e) {
+      logger.e(e);
+      if (mounted)
+        showAppSnackBar(context, cleanErrorMessage(e), isError: true);
+    }
     _msgCtrl.clear();
     _refresh();
-    // await _chat.sendMessage(
-    //   chatId: widget.chatId,
-    //   receiverId: widget.otherUser.uid,
-    //   content: text,
-    //   type: MessageType.text,
-    // );
     _scrollToBottom();
   }
 
@@ -112,7 +138,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
       // );
       _scrollToBottom();
     } catch (_) {
-      if (mounted) showAppSnackBar(context, 'Failed to send message', isError: true);
+      if (mounted)
+        showAppSnackBar(context, 'Failed to send message', isError: true);
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -121,21 +148,43 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Future<void> _pickImage(ImageSource source) async {
     final file = await _picker.pickImage(source: source, imageQuality: 70);
     if (file == null) return;
-    await _sendFile(file: File(file.path), type: MessageType.image, fileName: file.name);
+    await _sendFile(
+      file: File(file.path),
+      type: MessageType.image,
+      fileName: file.name,
+    );
   }
 
   Future<void> _pickVideo() async {
     final file = await _picker.pickVideo(source: ImageSource.gallery);
     if (file == null) return;
-    await _sendFile(file: File(file.path), type: MessageType.video, fileName: file.name);
+    await _sendFile(
+      file: File(file.path),
+      type: MessageType.video,
+      fileName: file.name,
+    );
   }
 
   Future<void> _pickDocument() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'csv', 'zip'],
+      allowedExtensions: [
+        'pdf',
+        'doc',
+        'docx',
+        'ppt',
+        'pptx',
+        'xls',
+        'xlsx',
+        'txt',
+        'csv',
+        'zip',
+      ],
     );
-    if (result == null || result.files.isEmpty || result.files.first.path == null) return;
+    if (result == null ||
+        result.files.isEmpty ||
+        result.files.first.path == null)
+      return;
     final f = result.files.first;
     await _sendFile(
       file: File(f.path!),
@@ -157,6 +206,40 @@ class _ConversationScreenState extends State<ConversationScreen> {
       );
     } else {
       await _voice.start(context, _refresh);
+    }
+  }
+
+  void getMessagesForChat() async {
+    try {
+      final response = await dio.get(
+        "${AppUrls.api_url}/api/conversations/${widget.chatId}/messages",
+        options: Options(
+          headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer ${AuthService.token}",
+          },
+          validateStatus: (status) => true,
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          messages = (response.data as List)
+              .map((e) => MessageModel.fromMap(e))
+              .toList();
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      } else {
+        throw Exception(
+          response.data is Map<String, dynamic>
+              ? response.data["error"]?.toString() ??
+                    "Request failed with status ${response.statusCode}"
+              : response.data.toString(),
+        );
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -182,7 +265,14 @@ class _ConversationScreenState extends State<ConversationScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(user.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                Text(
+                  user.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 // Text(
                 //   user.isOnline ? 'online' : 'last seen ${DateFormat.Hm().format(user.lastSeen)}',
                 //   style: TextStyle(
@@ -198,34 +288,32 @@ class _ConversationScreenState extends State<ConversationScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListenableBuilder(
-              listenable: LocalDb(),
-              builder: (_, __) {
-                // final messages = LocalDb().getMessagesForChat(widget.chatId);
-                final messages = [];
-                if (messages.isEmpty) {
-                  return const Center(
+            child: messages.isEmpty
+                ? const Center(
                     child: Text(
                       'No messages yet.\nSay hello! 👋',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                  );
-                }
-                WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-                return ListView.builder(
-                  controller: _scrollCtrl,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  itemCount: messages.length,
-                  itemBuilder: (_, i) => MessageBubble(
-                    message: messages[i],
-                    isMe: messages[i].senderId == _myId,
-                    playingMessageId: _voice.playingMessageId,
-                    onPlayAudio: (url, id) => _voice.togglePlayback(url, id, _refresh),
+                  )
+                : ListView.builder(
+                    controller: _scrollCtrl,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    itemCount: messages.length,
+                    itemBuilder: (_, i) => MessageBubble(
+                      message: messages[i],
+                      isMe: messages[i].senderId == _myId,
+                      playingMessageId: _voice.playingMessageId,
+                      onPlayAudio: (url, id) =>
+                          _voice.togglePlayback(url, id, _refresh),
+                    ),
                   ),
-                );
-              },
-            ),
           ),
           if (_voice.isRecording)
             Container(
@@ -237,15 +325,28 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   Container(
                     width: 10,
                     height: 10,
-                    decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
+                    decoration: const BoxDecoration(
+                      color: AppColors.error,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Text(
                     _voice.recordingLabel,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.error),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.error,
+                    ),
                   ),
                   const Spacer(),
-                  const Text('Tap stop to send', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                  const Text(
+                    'Tap stop to send',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -255,9 +356,22 @@ class _ConversationScreenState extends State<ConversationScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen)),
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primaryGreen,
+                    ),
+                  ),
                   SizedBox(width: 8),
-                  Text('Sending...', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                  Text(
+                    'Sending...',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ),
             ),

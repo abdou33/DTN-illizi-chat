@@ -173,24 +173,26 @@ class _ChatsScreenState extends State<ChatsScreen> {
           ),
         ],
       ),
-      body: ListenableBuilder(
-        listenable: LocalDb(),
-        builder: (_, __) {
-          logger.w(chats.toList().toString());
-          if (chats.isEmpty) {
-            return const EmptyState(
-              icon: AppIcons.chat,
-              title: 'No conversations yet',
-              subtitle: 'Start a new chat to begin messaging',
+      body: RefreshIndicator.adaptive(
+        onRefresh: () => _getchats(),
+        child: ListenableBuilder(
+          listenable: LocalDb(),
+          builder: (_, __) {
+            if (chats.isEmpty) {
+              return const EmptyState(
+                icon: AppIcons.chat,
+                title: 'No conversations yet',
+                subtitle: 'Start a new chat to begin messaging',
+              );
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.only(top: 8),
+              itemCount: chats.length,
+              itemBuilder: (_, i) =>
+                  ChatListTile(chat: chats[i], searchQuery: _query),
             );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.only(top: 8),
-            itemCount: chats.length,
-            itemBuilder: (_, i) =>
-                ChatListTile(chat: chats[i], searchQuery: _query),
-          );
-        },
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
