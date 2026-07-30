@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
@@ -91,6 +92,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Future<void> _sendText() async {
     final text = _msgCtrl.text.trim();
     if (text.isEmpty) return;
+    setState(() => _sending = true);
 
     try {
       MessageModel? msg = await _chat.sendMessage(
@@ -103,6 +105,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
       logger.e(e);
       if (mounted)
         showAppSnackBar(context, cleanErrorMessage(e), isError: true);
+    } finally {
+      if (mounted) setState(() => _sending = false);
     }
     _msgCtrl.clear();
     _refresh();
@@ -243,20 +247,25 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
-  void _listenToConversation() {
+  void _listenToConversation() async {
+    await ReverbService.connect();
     _conversationChannel = ReverbService.client.subscribeToPrivateChannel(
       'private-conversation.${widget.chatId}',
     );
 
     _conversationChannel.on('message.sent').listen((event) {
-      final data = event.data;
+      final data = jsonDecode(event.data);
+      logger.i("2222222222222 🔥 Reverb event: ${data}");
 
-      final message = MessageModel.fromMap(data['message']);
+      final message = MessageModel.fromMap(
+        Map<String, dynamic>.from(data['message']),
+      );
 
       if (!mounted) return;
 
       setState(() {
         messages.add(message);
+        if (mounted) setState(() => _sending = false);
       });
 
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());

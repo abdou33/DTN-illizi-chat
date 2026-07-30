@@ -5,6 +5,7 @@ import 'auth_service.dart';
 
 class ReverbService {
   static var logger = Logger();
+  static bool _connected = false;
   static final client = ReverbClient.instance(
     host: '10.0.2.2',
     port: 8081,
@@ -19,15 +20,32 @@ class ReverbService {
   );
 
   static Future<void> connect() async {
+    if (_connected) return;
+
+    final state = client.onConnectionStateChange;
+
     await client.connect();
-    logger.i("reverb connected");
+
+    await for (final connectionState in state) {
+      logger.i("Reverb state: $connectionState");
+
+      if (connectionState == ConnectionState.connected) {
+        _connected = true;
+        logger.i("Reverb connected");
+        break;
+      }
+
+      if (connectionState == ConnectionState.error) {
+        throw Exception("Failed to connect to Reverb");
+      }
+    }
   }
 
   static void listen() {
     final channel = client.subscribeToChannel('test');
 
     channel.on('test.message').listen((event) {
-      logger.i("🔥 Reverb event: ${event.data}");
+      logger.i("1111111111111 🔥 Reverb event: ${event.data}");
     });
   }
 

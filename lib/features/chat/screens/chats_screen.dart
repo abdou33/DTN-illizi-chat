@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
 import 'package:dtn_chat/core/utils/ui_utils.dart';
@@ -50,7 +52,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
     super.dispose();
   }
 
-  void _listenForChatUpdates() {
+  void _listenForChatUpdates() async {
+    await ReverbService.connect();
     final userId = AuthService.currentUser!.id;
 
     _userChannel = ReverbService.client.subscribeToPrivateChannel(
@@ -58,13 +61,31 @@ class _ChatsScreenState extends State<ChatsScreen> {
     );
 
     _userChannel.on('message.sent').listen((event) {
-      final data = event.data;
+      final data = jsonDecode(event.data);
 
-      final message = MessageModel.fromMap(data['message']);
+      final message = MessageModel.fromMap(
+        Map<String, dynamic>.from(data['message']),
+      );
 
       if (!mounted) return;
 
-      _updateChatList(message);
+      setState(() {
+        final index = chats.indexWhere(
+          (chat) => chat.chatId == message.conversationId,
+        );
+
+        if (index == -1) return;
+
+        final updatedChat = chats[index].copyWith(
+          lastMessage: message.content,
+          lastMessageType: message.type.name,
+          lastMessageTime: message.timestamp,
+          unreadCount: chats[index].unreadCount + 1,
+        );
+
+        chats.removeAt(index);
+        chats.insert(0, updatedChat);
+      });
     });
   }
 
@@ -138,6 +159,9 @@ class _ChatsScreenState extends State<ChatsScreen> {
         ),
       );
       // logger.i("response: ${response.data}");
+      logger.i("status: ${response.statusCode}");
+      logger.i("type: ${response.data.runtimeType}");
+      logger.i("data: ${response.data}");
 
       if (response.statusCode == 200) {
         setState(() {
@@ -206,25 +230,19 @@ class _ChatsScreenState extends State<ChatsScreen> {
         ],
       ),
       body: RefreshIndicator.adaptive(
-        onRefresh: () => _getchats(),
-        child: ListenableBuilder(
-          listenable: LocalDb(),
-          builder: (_, __) {
-            if (chats.isEmpty) {
-              return const EmptyState(
+        onRefresh: _getchats,
+        child: chats.isEmpty
+            ? const EmptyState(
                 icon: AppIcons.chat,
                 title: 'No conversations yet',
                 subtitle: 'Start a new chat to begin messaging',
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.only(top: 8),
-              itemCount: chats.length,
-              itemBuilder: (_, i) =>
-                  ChatListTile(chat: chats[i], searchQuery: _query),
-            );
-          },
-        ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.only(top: 8),
+                itemCount: chats.length,
+                itemBuilder: (_, i) =>
+                    ChatListTile(chat: chats[i], searchQuery: _query),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(

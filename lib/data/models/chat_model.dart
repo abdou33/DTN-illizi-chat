@@ -33,6 +33,22 @@ class ChatModel {
     );
   }
 
+  ChatModel copyWith({
+    String? lastMessage,
+    String? lastMessageType,
+    DateTime? lastMessageTime,
+    int? unreadCount,
+  }) {
+    return ChatModel(
+      chatId: chatId,
+      participants: participants,
+      lastMessage: lastMessage ?? this.lastMessage,
+      lastMessageType: lastMessageType ?? this.lastMessageType,
+      lastMessageTime: lastMessageTime ?? this.lastMessageTime,
+      unreadCount: unreadCount ?? this.unreadCount,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'chatId': chatId,

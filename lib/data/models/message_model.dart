@@ -7,6 +7,7 @@ enum MessageType {
 }
 
 class MessageModel {
+  final String conversationId;
   final String messageId;
   final String senderId;
   final String content;
@@ -19,6 +20,7 @@ class MessageModel {
   final int? audioDurationMs;
 
   MessageModel({
+    required this.conversationId,
     required this.messageId,
     required this.senderId,
     required this.content,
@@ -40,20 +42,22 @@ class MessageModel {
     }
 
     return MessageModel(
-      messageId: "${map['id']}" ?? '',
-      senderId: "${map['sender_id']}" ?? '',
+      conversationId: map['conversation_id']?.toString() ?? '',
+      messageId: map['id']?.toString() ?? '',
+      senderId: map['sender_id']?.toString() ?? '',
       content: map['message'] ?? '',
       type: MessageType.values.firstWhere(
         (e) => e.name == (map['type'] ?? 'text'),
         orElse: () => MessageType.text,
       ),
       fileUrl: map['attachment'],
-      fileSizeBytes: map['file_size'],
+      fileSizeBytes: map['file_size'] as int?,
       timestamp: timestamp,
       isRead: map['is_read'] == 1,
       audioDurationMs: map['audioDurationMs'],
     );
   }
+  
 
   Map<String, dynamic> toMap() {
     return {
