@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
 import 'package:dtn_chat/data/services/auth_service.dart';
@@ -13,37 +15,51 @@ class ChatService {
     required String chatId,
     required String content,
     required MessageType type,
-    String? fileUrl,
-    int? fileSizeBytes,
+    File? file,
     int? audioDurationMs,
   }) async {
+    final formData = FormData.fromMap({
+      'conversation_id': chatId,
+      'type': type.name,
+      'message': content,
+      'reply_to_id': null,
+    });
+
+    if (file != null) {
+      formData.files.add(
+        MapEntry(
+          'attachment',
+          await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
+          ),
+        ),
+      );
+    }
+
     final response = await dio.post(
       "${AppUrls.api_url}/api/messages",
-      data: {
-        'conversation_id': chatId,
-        'type': type.name,
-        'message': content,
-        'attachment': fileUrl,
-        'reply_to_id': null,
-      },
+      data: formData,
       options: Options(
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
           'Authorization': 'Bearer ${AuthService.token}',
         },
-        validateStatus: (status) => true, // accept all codes
+        contentType: 'multipart/form-data',
+        validateStatus: (status) => true,
       ),
     );
 
     if (response.statusCode == 201) {
-      MessageModel chat = MessageModel.fromMap(response.data);
-      return chat;
-    } else {
-      throw Exception(
-        response.data['error']?.toString() ??
-            'sending message failed with status code ${response.statusCode}',
-      );
+      return MessageModel.fromMap(response.data);
     }
+
+    throw Exception(
+      response.data is Map
+          ? response.data['error']?.toString() ??
+                response.data['message']?.toString() ??
+                'Sending file failed'
+          : 'Sending file failed with status code ${response.statusCode}',
+    );
   }
 }

@@ -7,6 +7,7 @@ import 'package:dtn_chat/data/models/chat_model.dart';
 import 'package:dtn_chat/data/models/message_model.dart';
 import 'package:dtn_chat/data/services/reverb_service.dart';
 import 'package:flutter/material.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:logger/logger.dart';
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 import '../../../core/constants/app_colors.dart';
@@ -31,6 +32,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
   final _searchCtrl = TextEditingController();
   late final Channel _userChannel;
   bool _searching = false;
+  bool _loading = false;
   String _query = '';
   List<ChatModel> chats = [];
   final dio = Dio();
@@ -100,11 +102,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
+        child: Material(
+          color: AppColors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -143,7 +144,7 @@ class _ChatsScreenState extends State<ChatsScreen> {
 
   Future<void> _getchats() async {
     setState(() {
-      _searching = true;
+      _loading = true;
       chats = [];
     });
     try {
@@ -176,17 +177,17 @@ class _ChatsScreenState extends State<ChatsScreen> {
         );
       }
     } catch (e) {
-      logger.e(e);
-      if (mounted)
+      // logger.e(e);
+      if (mounted) {
         showAppSnackBar(context, cleanErrorMessage(e), isError: true);
+      }
     } finally {
-      if (mounted) setState(() => _searching = false);
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
-    // final users = await _auth.searchUsers(query.trim());
-    if (mounted)
-      setState(() {
-        _searching = false;
-      });
   }
 
   @override
@@ -231,7 +232,26 @@ class _ChatsScreenState extends State<ChatsScreen> {
       ),
       body: RefreshIndicator.adaptive(
         onRefresh: _getchats,
-        child: chats.isEmpty
+        child: _loading
+            ? Container(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 20,
+                  children: [
+                    SizedBox(
+                      height: 35,
+                      width: 35,
+                      child: CircularProgressIndicator(),
+                    ),
+                    const EmptyState(
+                      icon: IconsaxPlusLinear.messages_3,
+                      title: 'Loading your conversations ;)',
+                      subtitle: '',
+                    ),
+                  ],
+                ),
+              )
+            : chats.isEmpty
             ? const EmptyState(
                 icon: AppIcons.chat,
                 title: 'No conversations yet',

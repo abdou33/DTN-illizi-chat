@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dtn_chat/core/constants/app_urls.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
@@ -94,7 +95,7 @@ class _MessageContent extends StatelessWidget {
       case MessageType.text:
         return Text(message.content, style: const TextStyle(fontSize: 16, color: AppColors.textPrimary));
       case MessageType.image:
-        final path = message.fileUrl ?? message.content;
+        final path = '${AppUrls.api_url}/storage/${message.fileUrl}' ?? message.content;
         return ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: isLocalMediaPath(path)

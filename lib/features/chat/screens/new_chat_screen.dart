@@ -152,7 +152,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
             validateStatus: (status) => true,
           ),
         );
-
+        if (!mounted) return;
         if (response.statusCode == 200) {
           setState(() {
             _contacts_results = (response.data as List)

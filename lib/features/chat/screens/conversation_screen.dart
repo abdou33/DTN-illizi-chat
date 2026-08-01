@@ -40,7 +40,6 @@ class ConversationScreen extends StatefulWidget {
 
 class _ConversationScreenState extends State<ConversationScreen> {
   final _chat = ChatService();
-  final _storage = StorageService();
   final _voice = VoiceRecorderHelper();
   final _msgCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
@@ -51,6 +50,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   late final String _myId;
   bool _sending = false;
+  bool _loading = false;
 
   List<MessageModel> messages = [];
 
@@ -116,37 +116,36 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Future<void> _sendFile({
     required File file,
     required MessageType type,
-    String? fileName,
+    required String fileName,
     int? fileSizeBytes,
     int? audioDurationMs,
   }) async {
     setState(() => _sending = true);
+
     try {
-      final path = type == MessageType.audio
-          ? await _storage.uploadVoiceMessage(file: file, chatId: widget.chatId)
-          : await _storage.uploadChatMedia(
-              file: file,
-              chatId: widget.chatId,
-              mediaType: type.name,
-              fileName: fileName,
-            );
-      // await _chat.sendMessage(
-      //   chatId: widget.chatId,
-      //   receiverId: widget.otherUser.uid,
-      //   content: path,
-      //   type: type,
-      //   fileUrl: path,
-      //   fileName: fileName,
-      //   fileSizeBytes: fileSizeBytes,
-      //   audioDurationMs: audioDurationMs,
-      // );
-      _scrollToBottom();
-    } catch (_) {
-      if (mounted)
-        showAppSnackBar(context, 'Failed to send message', isError: true);
+      final MessageModel? msg = await _chat.sendMessage(
+        chatId: widget.chatId,
+        content: fileName,
+        type: type,
+        file: file,
+        audioDurationMs: audioDurationMs,
+      );
+
+      logger.i("file sent: ${msg?.content}");
+    } catch (e) {
+      logger.e(e);
+
+      if (mounted) {
+        showAppSnackBar(context, cleanErrorMessage(e), isError: true);
+      }
     } finally {
-      if (mounted) setState(() => _sending = false);
+      if (mounted) {
+        setState(() => _sending = false);
+      }
     }
+
+    _refresh();
+    _scrollToBottom();
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -185,6 +184,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         'zip',
       ],
     );
+
     if (result == null ||
         result.files.isEmpty ||
         result.files.first.path == null)
@@ -214,6 +214,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
   }
 
   void getMessagesForChat() async {
+    setState(() {
+      _loading = true;
+    });
     try {
       final response = await dio.get(
         "${AppUrls.api_url}/api/conversations/${widget.chatId}/messages",
@@ -233,7 +236,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
               .map((e) => MessageModel.fromMap(e))
               .toList();
         });
-        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
       } else {
         throw Exception(
           response.data is Map<String, dynamic>
@@ -243,7 +245,17 @@ class _ConversationScreenState extends State<ConversationScreen> {
         );
       }
     } catch (e) {
-      rethrow;
+      // logger.e(e);
+      if (mounted) {
+        showAppSnackBar(context, cleanErrorMessage(e), isError: true);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     }
   }
 
@@ -317,8 +329,24 @@ class _ConversationScreenState extends State<ConversationScreen> {
       body: Column(
         children: [
           Expanded(
-            child: messages.isEmpty
-                ? const Center(
+            child: _loading
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 20,
+                    children: [
+                      CircularProgressIndicator(),
+                      Text(
+                        'Loading messages',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  )
+                : messages.isEmpty
+                ? Center(
                     child: Text(
                       'No messages yet.\nSay hello! 👋',
                       textAlign: TextAlign.center,
