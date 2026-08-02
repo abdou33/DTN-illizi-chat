@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dtn_chat/core/constants/app_urls.dart';
+import 'package:dtn_chat/features/chat/screens/fullscreen_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
@@ -7,6 +8,9 @@ import '../../../core/constants/app_icons.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../core/utils/media_utils.dart';
 import '../../../data/models/message_model.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:dio/dio.dart';
 
 class MessageBubble extends StatelessWidget {
   final MessageModel message;
@@ -27,7 +31,12 @@ class MessageBubble extends StatelessWidget {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: EdgeInsets.only(top: 4, bottom: 4, left: isMe ? 60 : 0, right: isMe ? 0 : 60),
+        margin: EdgeInsets.only(
+          top: 4,
+          bottom: 4,
+          left: isMe ? 60 : 0,
+          right: isMe ? 0 : 60,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: isMe ? AppColors.senderBubble : AppColors.receiverBubble,
@@ -59,14 +68,19 @@ class MessageBubble extends StatelessWidget {
               children: [
                 Text(
                   DateFormat.Hm().format(message.timestamp),
-                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
                 if (isMe) ...[
                   const SizedBox(width: 4),
                   Icon(
                     message.isRead ? AppIcons.read : AppIcons.sent,
                     size: 14,
-                    color: message.isRead ? AppColors.iosBlue : AppColors.textSecondary,
+                    color: message.isRead
+                        ? AppColors.iosBlue
+                        : AppColors.textSecondary,
                   ),
                 ],
               ],
@@ -89,24 +103,64 @@ class _MessageContent extends StatelessWidget {
     required this.onPlayAudio,
   });
 
+  Future<void> openRemoteFile(String url) async {
+    final dio = Dio();
+    final tempDir = await getTemporaryDirectory();
+
+    final fileName = url.split('/').last;
+    final extension = message.fileUrl!.split('.').last.split('?').first;
+
+    final filePath = '${tempDir.path}/message_${message.messageId}.$extension';
+
+    final file = File(filePath);
+
+    // Don't download it again if already cached
+    if (!await File(filePath).exists()) {
+      await dio.download(url, filePath);
+    }
+
+    await OpenFilex.open(filePath);
+  }
+
   @override
   Widget build(BuildContext context) {
     switch (message.type) {
       case MessageType.text:
-        return Text(message.content, style: const TextStyle(fontSize: 16, color: AppColors.textPrimary));
+        return Text(
+          message.content,
+          style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
+        );
       case MessageType.image:
-        final path = '${AppUrls.api_url}/storage/${message.fileUrl}' ?? message.content;
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: isLocalMediaPath(path)
-              ? Image.file(File(path), width: 220, fit: BoxFit.cover)
-              : Image.network(path, width: 220, fit: BoxFit.cover),
+        final path =
+            '${AppUrls.api_url}/storage/${message.fileUrl}' ?? message.content;
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => FullscreenImageScreen(imageUrl: path),
+              ),
+            );
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: isLocalMediaPath(path)
+                ? Image.file(File(path), width: 220, fit: BoxFit.cover)
+                : Image.network(path, width: 220, fit: BoxFit.cover),
+          ),
         );
       case MessageType.video:
-        return _MediaRow(
-          icon: AppIcons.play,
-          title: message.fileUrl ?? 'Video',
-          subtitle: 'Tap to play',
+        return InkWell(
+          onTap: () async {
+            await openRemoteFile(
+              '${AppUrls.api_url}/storage/${message.fileUrl}',
+            );
+          },
+          child: _MediaRow(
+            icon: AppIcons.play,
+            title: message.fileUrl ?? 'Video',
+            subtitle: 'Tap to play',
+          ),
         );
       case MessageType.audio:
         final isPlaying = playingMessageId == message.messageId;
@@ -114,7 +168,10 @@ class _MessageContent extends StatelessWidget {
             ? formatAudioMs(message.audioDurationMs!)
             : 'Voice message';
         return GestureDetector(
-          onTap: () => onPlayAudio(message.fileUrl ?? message.content, message.messageId),
+          onTap: () => onPlayAudio(
+            message.fileUrl ?? message.content,
+            message.messageId,
+          ),
           child: _MediaRow(
             icon: isPlaying ? AppIcons.pause : AppIcons.play,
             title: isPlaying ? 'Playing...' : label,
@@ -123,13 +180,20 @@ class _MessageContent extends StatelessWidget {
           ),
         );
       case MessageType.document:
-        return _MediaRow(
-          icon: AppIcons.document,
-          title: message.fileUrl ?? 'Document',
-          subtitle: message.fileSizeBytes != null
-              ? '${(message.fileSizeBytes! / 1024).toStringAsFixed(1)} KB'
-              : 'Document',
-          iconColor: Colors.orange,
+        return InkWell(
+          onTap: () async {
+            await openRemoteFile(
+              '${AppUrls.api_url}/storage/${message.fileUrl}',
+            );
+          },
+          child: _MediaRow(
+            icon: AppIcons.document,
+            title: message.fileUrl ?? 'Document',
+            subtitle: message.fileSizeBytes != null
+                ? '${(message.fileSizeBytes! / 1024).toStringAsFixed(1)} KB'
+                : 'Document',
+            iconColor: Colors.orange,
+          ),
         );
     }
   }
@@ -169,10 +233,19 @@ class _MediaRow extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),

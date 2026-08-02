@@ -30,6 +30,8 @@ abstract final class AppIcons {
   static const stop = IconsaxPlusLinear.stop_circle;
   static const sent = IconsaxPlusLinear.tick_circle;
   static const read = IconsaxPlusLinear.message_tick;
+  static const save = IconsaxPlusLinear.document_download;
+  static const delete = IconsaxPlusLinear.trash_square;
 
   // Media
   static const gallery = IconsaxPlusLinear.gallery;

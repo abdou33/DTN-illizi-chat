@@ -27,6 +27,7 @@ dependencies:
   dio: ^5.10.0
   flutter_contacts: ^2.3.0
   pusher_reverb_flutter: ^0.0.9
+  open_filex: ^4.7.0
   
   logger: ^2.7.0
 

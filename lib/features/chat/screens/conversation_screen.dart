@@ -284,6 +284,88 @@ class _ConversationScreenState extends State<ConversationScreen> {
     });
   }
 
+  Future<void> saveFilelocally(MessageModel msg) async {
+    try {
+      final dir = Directory('/dtnchat');
+
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+
+      final fileName =
+          'chatdtn_${DateFormat('yyyy_MM_dd_HHmmss').format(msg.timestamp)}_${msg.messageId}.${msg.fileUrl!.split('.').last}';
+      final filePath = '${dir.path}/$fileName';
+
+      await Dio().download(msg.fileUrl!, filePath);
+
+      if (!context.mounted) return;
+
+      showAppSnackBar(context, 'File saved successfully', isError: false);
+    } catch (e) {
+      if (!context.mounted) return;
+
+      showAppSnackBar(context, 'Failed to save file', isError: true);
+    }
+  }
+
+  Future<void> deleteMessage(MessageModel msg) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete message?'),
+        content: const Text('Are you sure you want to delete this message?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final response = await dio.delete(
+        '${AppUrls.api_url}/api/messages/${msg.messageId}',
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ${AuthService.token}',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        if (!context.mounted) return;
+
+        logger.i('BEFORE delete: ${messages.length}');
+
+        setState(() {
+          messages.removeWhere((msg) => msg.messageId == msg.messageId);
+        });
+
+        logger.i('AFTER delete: ${messages.length}');
+
+        showAppSnackBar(
+          context,
+          'Message deleted successfully',
+          isError: false,
+        );
+      } else {
+        throw Exception('Delete failed');
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+
+      showAppSnackBar(context, 'Failed to delete message', isError: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = widget.otherUser;
@@ -363,12 +445,31 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       vertical: 8,
                     ),
                     itemCount: messages.length,
-                    itemBuilder: (_, i) => MessageBubble(
-                      message: messages[i],
-                      isMe: messages[i].senderId == _myId,
-                      playingMessageId: _voice.playingMessageId,
-                      onPlayAudio: (url, id) =>
-                          _voice.togglePlayback(url, id, _refresh),
+                    itemBuilder: (_, i) => InkWell(
+                      onLongPress: () {
+                        showBubbleOptionsSheet(
+                          context,
+                          isself: messages[i].senderId == _myId,
+                          onSave: () {
+                            saveFilelocally(messages[i]);
+                          },
+                          onDelete: () {
+                            deleteMessage(messages[i]);
+                          },
+                        );
+                      },
+                      child: MessageBubble(
+                        message: messages[i],
+                        isMe: messages[i].senderId == _myId,
+                        playingMessageId: _voice.playingMessageId,
+                        onPlayAudio: (url, id) {
+                          _voice.togglePlayback(
+                            '${AppUrls.api_url}/storage/$url',
+                            id,
+                            _refresh,
+                          );
+                        },
+                      ),
                     ),
                   ),
           ),
