@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
+import 'package:media_store_plus/media_store_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
@@ -100,9 +102,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
         content: text,
         type: MessageType.text,
       );
-      logger.i("msg content ${msg?.content}");
+      // logger.i("msg content ${msg?.content}");
     } catch (e) {
-      logger.e(e);
+      // logger.e(e);
       if (mounted)
         showAppSnackBar(context, cleanErrorMessage(e), isError: true);
     } finally {
@@ -131,7 +133,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         audioDurationMs: audioDurationMs,
       );
 
-      logger.i("file sent: ${msg?.content}");
+      // logger.i("file sent: ${msg?.content}");
     } catch (e) {
       logger.e(e);
 
@@ -267,7 +269,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
     _conversationChannel.on('message.sent').listen((event) {
       final data = jsonDecode(event.data);
-      logger.i("2222222222222 🔥 Reverb event: ${data}");
+      // logger.i("2222222222222 🔥 Reverb event: ${data}");
 
       final message = MessageModel.fromMap(
         Map<String, dynamic>.from(data['message']),
@@ -286,23 +288,41 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
   Future<void> saveFilelocally(MessageModel msg) async {
     try {
-      final dir = Directory('/dtnchat');
+      final tempDir = await getTemporaryDirectory();
 
-      if (!await dir.exists()) {
-        await dir.create(recursive: true);
-      }
+      final extension = msg.fileUrl!.split('.').last.split('?').first;
 
       final fileName =
-          'chatdtn_${DateFormat('yyyy_MM_dd_HHmmss').format(msg.timestamp)}_${msg.messageId}.${msg.fileUrl!.split('.').last}';
-      final filePath = '${dir.path}/$fileName';
+          'chatdtn_${DateFormat('yyyy_MM_dd_HHmmss').format(msg.timestamp)}_${msg.messageId}.$extension';
 
-      await Dio().download(msg.fileUrl!, filePath);
+      final tempPath = '${tempDir.path}/$fileName';
+
+      await Dio().download(
+        '${AppUrls.api_url}/storage/${msg.fileUrl}',
+        tempPath,
+      );
+
+      final mediaStore = MediaStore();
+
+      await mediaStore.saveFile(
+        tempFilePath: tempPath,
+        dirType: DirType.download,
+        dirName: DirName.download,
+        relativePath: 'dtnchat',
+      );
+
+      final tempFile = File(tempPath);
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
 
       if (!context.mounted) return;
 
       showAppSnackBar(context, 'File saved successfully', isError: false);
     } catch (e) {
       if (!context.mounted) return;
+
+      logger.e('Failed to save file: $e');
 
       showAppSnackBar(context, 'Failed to save file', isError: true);
     }
@@ -342,14 +362,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
       if (response.statusCode == 200) {
         if (!context.mounted) return;
-
-        logger.i('BEFORE delete: ${messages.length}');
+        final targetId = msg.messageId;
 
         setState(() {
-          messages.removeWhere((msg) => msg.messageId == msg.messageId);
+          messages.removeWhere((item) => item.messageId == targetId);
         });
-
-        logger.i('AFTER delete: ${messages.length}');
 
         showAppSnackBar(
           context,

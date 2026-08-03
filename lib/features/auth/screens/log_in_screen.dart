@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
 import 'package:dtn_chat/data/services/shared_preferences_service.dart';
 import 'package:dtn_chat/features/auth/screens/register_screen.dart';
+import 'package:dtn_chat/features/chat/screens/change_pwd_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
@@ -69,10 +70,19 @@ class _LogInScreenState extends State<LogInScreen> {
         );
       }
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const ChatsScreen()),
-        (_) => false,
-      );
+      if (response.data["user"]["pwd_changable"] == 1) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => const ChangePwdScreen(canignore: true),
+          ),
+          (_) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const ChatsScreen()),
+          (_) => false,
+        );
+      }
     } catch (e) {
       if (mounted)
         showAppSnackBar(context, cleanErrorMessage(e), isError: true);

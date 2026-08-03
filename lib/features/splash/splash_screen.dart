@@ -1,6 +1,12 @@
+import 'package:dio/dio.dart';
+import 'package:dtn_chat/core/constants/app_urls.dart';
+import 'package:dtn_chat/core/utils/ui_utils.dart';
+import 'package:dtn_chat/data/models/chat_model.dart';
 import 'package:dtn_chat/features/auth/screens/log_in_screen.dart';
 import 'package:dtn_chat/features/auth/screens/register_screen.dart';
+import 'package:dtn_chat/features/chat/screens/disactivated_account.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_icons.dart';
 import '../../data/services/auth_service.dart';
@@ -22,6 +28,9 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _logoScale;
   late final Animation<double> _logoOpacity;
   late final Animation<double> _fadeOut;
+  var logger = Logger();
+  final dio = Dio();
+  bool _loading = false;
 
   @override
   void initState() {
@@ -55,18 +64,56 @@ class _SplashScreenState extends State<SplashScreen>
     await _fadeCtrl.forward();
     if (!mounted) return;
     bool loggedIn = await AuthService().userisloggedin();
+    bool isdisabled = false;
+    if (loggedIn) {
+      isdisabled = await verifyserver();
+    }
+
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, a, __) =>
-            // loggedIn ? const ChatsScreen() : const WelcomeScreen(), // WelcomeScreen previously
-            loggedIn
-            ? const ChatsScreen()
+        pageBuilder: (_, a, __) => loggedIn
+            ? isdisabled
+                  ? DisactivatedAccountScreen()
+                  : const ChatsScreen()
             : const LogInScreen(), // WelcomeScreen previously
         transitionsBuilder: (_, a, __, child) =>
             FadeTransition(opacity: a, child: child),
         transitionDuration: const Duration(milliseconds: 600),
       ),
     );
+  }
+
+  Future<bool> verifyserver() async {
+    try {
+      final response = await dio.get(
+        "${AppUrls.api_url}/api/check-account",
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${AuthService.token}',
+          },
+          validateStatus: (status) => true, // accept all codes
+        ),
+      );
+      // logger.i("response: ${response.data}");
+      // logger.i("status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        return response.data["is_disabled"];
+      } else {
+        throw Exception(
+          response.data['error']?.toString() ??
+              'Request failed with status code ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      // logger.e(e);
+      if (mounted) {
+        showAppSnackBar(context, cleanErrorMessage(e), isError: true);
+      }
+    }
+    return false;
   }
 
   @override

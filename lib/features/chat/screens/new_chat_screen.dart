@@ -65,9 +65,9 @@ class _NewChatScreenState extends State<NewChatScreen> {
           validateStatus: (status) => true, // accept all codes
         ),
       );
-      logger.i(
-        "result type: ${response.data.runtimeType}: statusCode2: ${response.statusCode}: search results: ${response.data}",
-      );
+      // logger.i(
+      //   "result type: ${response.data.runtimeType}: statusCode2: ${response.statusCode}: search results: ${response.data}",
+      // );
 
       if (response.statusCode == 200) {
         setState(() {
@@ -110,7 +110,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
           validateStatus: (status) => true, // accept all codes
         ),
       );
-      logger.i("response: ${response.data}");
+      // logger.i("response: ${response.data}");
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         Navigator.pushReplacement(

@@ -32,6 +32,7 @@ class AuthService {
       "login_token",
       newToken.substring(newToken.indexOf('|') + 1, newToken.length),
     );
+    await loadToken();
     return saved;
   }
 

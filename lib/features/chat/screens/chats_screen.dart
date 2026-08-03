@@ -160,9 +160,9 @@ class _ChatsScreenState extends State<ChatsScreen> {
         ),
       );
       // logger.i("response: ${response.data}");
-      logger.i("status: ${response.statusCode}");
-      logger.i("type: ${response.data.runtimeType}");
-      logger.i("data: ${response.data}");
+      // logger.i("status: ${response.statusCode}");
+      // logger.i("type: ${response.data.runtimeType}");
+      // logger.i("data: ${response.data}");
 
       if (response.statusCode == 200) {
         setState(() {

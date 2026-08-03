@@ -131,8 +131,8 @@ class _MessageContent extends StatelessWidget {
           style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
         );
       case MessageType.image:
-        final path =
-            '${AppUrls.api_url}/storage/${message.fileUrl}' ?? message.content;
+        final path = '${AppUrls.api_url}/storage/${message.fileUrl}';
+
         return GestureDetector(
           onTap: () {
             Navigator.push(
@@ -144,9 +144,42 @@ class _MessageContent extends StatelessWidget {
           },
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: isLocalMediaPath(path)
-                ? Image.file(File(path), width: 220, fit: BoxFit.cover)
-                : Image.network(path, width: 220, fit: BoxFit.cover),
+            child: SizedBox(
+              width: 280,
+              height: 210,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 280,
+                    height: 210,
+                    color: Colors.black.withValues(alpha: 0.05),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+
+                  isLocalMediaPath(path)
+                      ? Image.file(
+                          File(path),
+                          width: 280,
+                          height: 210,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.network(
+                          path,
+                          width: 280,
+                          height: 210,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) {
+                              return child;
+                            }
+
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                ],
+              ),
+            ),
           ),
         );
       case MessageType.video:

@@ -57,7 +57,7 @@ class MessageModel {
       audioDurationMs: map['audioDurationMs'],
     );
   }
-  
+
 
   Map<String, dynamic> toMap() {
     return {

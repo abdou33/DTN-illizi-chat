@@ -27,11 +27,11 @@ class ReverbService {
     await client.connect();
 
     await for (final connectionState in state) {
-      logger.i("Reverb state: $connectionState");
+      // logger.i("Reverb state: $connectionState");
 
       if (connectionState == ConnectionState.connected) {
         _connected = true;
-        logger.i("Reverb connected");
+        // logger.i("Reverb connected");
         break;
       }
 
@@ -45,7 +45,7 @@ class ReverbService {
     final channel = client.subscribeToChannel('test');
 
     channel.on('test.message').listen((event) {
-      logger.i("1111111111111 🔥 Reverb event: ${event.data}");
+      // logger.i("1111111111111 🔥 Reverb event: ${event.data}");
     });
   }
 
