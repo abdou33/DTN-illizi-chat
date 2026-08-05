@@ -34,11 +34,11 @@ class MessageModel {
 
   factory MessageModel.fromMap(Map<String, dynamic> map) {
     DateTime timestamp = DateTime.now();
-    final raw = map['timestamp'];
+    final raw = map['created_at'];
     if (raw is String) {
-      timestamp = DateTime.tryParse(raw) ?? DateTime.now();
+      timestamp = DateTime.tryParse(raw)?.toLocal() ?? DateTime.now();
     } else if (raw is int) {
-      timestamp = DateTime.fromMillisecondsSinceEpoch(raw);
+      timestamp = DateTime.fromMillisecondsSinceEpoch(raw).toLocal();
     }
 
     return MessageModel(

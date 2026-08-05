@@ -51,11 +51,7 @@ class AuthScaffold extends StatelessWidget {
                 ],
               ),
               // child: const Icon(AppIcons.chatBold, size: 60, color: AppColors.tealGreen),
-              child: Image.asset(
-                height: 60,
-                width: 60,
-                "assets/logo_green_transparent.png",
-              ),
+              child: Image.asset(height: 60, width: 60, "assets/icon.png"),
             ),
             const SizedBox(height: 30),
             Text(

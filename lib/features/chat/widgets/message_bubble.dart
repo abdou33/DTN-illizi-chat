@@ -67,7 +67,11 @@ class MessageBubble extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  DateFormat.Hm().format(message.timestamp),
+                  DateUtils.isSameDay(message.timestamp, DateTime.now())
+                      ? DateFormat.Hm().format(message.timestamp)
+                      : DateFormat(
+                          'dd/MM/yyyy HH:mm',
+                        ).format(message.timestamp),
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary,
@@ -208,7 +212,9 @@ class _MessageContent extends StatelessWidget {
           child: _MediaRow(
             icon: isPlaying ? AppIcons.pause : AppIcons.play,
             title: isPlaying ? 'Playing...' : label,
-            subtitle: 'Voice message',
+            subtitle: message.fileSizeBytes != null
+                ? '${(message.fileSizeBytes! / 1024).toStringAsFixed(1)} KB'
+                : 'Voice message',
             iconSize: 36,
           ),
         );
@@ -221,7 +227,7 @@ class _MessageContent extends StatelessWidget {
           },
           child: _MediaRow(
             icon: AppIcons.document,
-            title: message.fileUrl ?? 'Document',
+            title: message.content ?? 'Document',
             subtitle: message.fileSizeBytes != null
                 ? '${(message.fileSizeBytes! / 1024).toStringAsFixed(1)} KB'
                 : 'Document',

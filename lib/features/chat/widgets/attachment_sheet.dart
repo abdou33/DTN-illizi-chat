@@ -71,6 +71,7 @@ void showBubbleOptionsSheet(
   BuildContext context, {
   required VoidCallback onSave,
   required bool isself,
+  required bool istext,
   required VoidCallback onDelete,
 }) {
   showModalBottomSheet(
@@ -96,15 +97,22 @@ void showBubbleOptionsSheet(
                 ),
               ),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _Option(AppIcons.save, 'Save Localy', AppColors.iosBlue, () {
-                    Navigator.pop(ctx);
-                    onSave();
-                  }),
-                  isself
-                      ? _Option(
+              isself
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 40,
+                      children: [
+                        if (!istext)
+                          _Option(
+                            AppIcons.save,
+                            'Save Localy',
+                            AppColors.iosBlue,
+                            () {
+                              Navigator.pop(ctx);
+                              onSave();
+                            },
+                          ),
+                        _Option(
                           AppIcons.delete,
                           'Delete Message',
                           Colors.red,
@@ -112,10 +120,22 @@ void showBubbleOptionsSheet(
                             Navigator.pop(ctx);
                             onDelete();
                           },
-                        )
-                      : SizedBox.shrink(),
-                ],
-              ),
+                        ),
+                      ],
+                    )
+                  : Center(
+                      child: !istext
+                          ? _Option(
+                              AppIcons.save,
+                              'Save Localy',
+                              AppColors.iosBlue,
+                              () {
+                                Navigator.pop(ctx);
+                                onSave();
+                              },
+                            )
+                          : SizedBox.shrink(),
+                    ),
               const SizedBox(height: 16),
             ],
           ),

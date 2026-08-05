@@ -8,6 +8,7 @@ class ChatInputBar extends StatelessWidget {
   final VoidCallback onAttach;
   final VoidCallback onSend;
   final VoidCallback onToggleRecord;
+  final VoidCallback onCancelRecord;
   final VoidCallback onTextChanged;
 
   const ChatInputBar({
@@ -17,6 +18,7 @@ class ChatInputBar extends StatelessWidget {
     required this.onAttach,
     required this.onSend,
     required this.onToggleRecord,
+    required this.onCancelRecord,
     required this.onTextChanged,
   });
 
@@ -44,7 +46,11 @@ class ChatInputBar extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(AppIcons.attach, color: AppColors.darkGreen, size: 28),
+            icon: const Icon(
+              AppIcons.attach,
+              color: AppColors.darkGreen,
+              size: 28,
+            ),
             onPressed: onAttach,
           ),
           Expanded(
@@ -60,15 +66,40 @@ class ChatInputBar extends StatelessWidget {
                 readOnly: isRecording,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
-                  hintText: isRecording ? 'Recording voice message...' : 'Message',
+                  hintText: isRecording
+                      ? 'Recording voice message...'
+                      : 'Message',
                   hintStyle: const TextStyle(color: AppColors.textSecondary),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                 ),
                 onChanged: (_) => onTextChanged(),
               ),
             ),
           ),
+          const SizedBox(width: 6),
+          // cancel vocal
+          isRecording
+              ? GestureDetector(
+                  onTap: onCancelRecord,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.textPrimary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      (AppIcons.cancel),
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                )
+              : SizedBox.shrink(),
           const SizedBox(width: 6),
           GestureDetector(
             onTap: hasText ? onSend : onToggleRecord,
@@ -82,7 +113,9 @@ class ChatInputBar extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                hasText ? AppIcons.send : (isRecording ? AppIcons.stop : AppIcons.mic),
+                hasText
+                    ? AppIcons.send
+                    : (isRecording ? AppIcons.stop : AppIcons.mic),
                 color: Colors.white,
                 size: 20,
               ),

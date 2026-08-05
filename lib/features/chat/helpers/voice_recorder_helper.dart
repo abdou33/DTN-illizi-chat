@@ -41,10 +41,18 @@ class VoiceRecorderHelper {
     status = await Permission.microphone.request();
     if (status.isGranted) return true;
     if (status.isPermanentlyDenied) {
-      showAppSnackBar(context, 'Enable microphone in app settings.', isError: true);
+      showAppSnackBar(
+        context,
+        'Enable microphone in app settings.',
+        isError: true,
+      );
       await openAppSettings();
     } else {
-      showAppSnackBar(context, 'Microphone permission is required.', isError: true);
+      showAppSnackBar(
+        context,
+        'Microphone permission is required.',
+        isError: true,
+      );
     }
     return false;
   }
@@ -75,8 +83,12 @@ class VoiceRecorderHelper {
       return null;
     }
     final dir = await getTemporaryDirectory();
-    final path = '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
-    await recorder.start(const RecordConfig(encoder: AudioEncoder.aacLc), path: path);
+    final path =
+        '${dir.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    await recorder.start(
+      const RecordConfig(encoder: AudioEncoder.aacLc),
+      path: path,
+    );
     isRecording = true;
     _startTimer(onUpdate);
     onUpdate();
@@ -91,7 +103,11 @@ class VoiceRecorderHelper {
 
     if (path == null || path.isEmpty) return null;
     if (durationMs < 1000) {
-      showAppSnackBar(context, 'Voice message must be at least 1 second.', isError: true);
+      showAppSnackBar(
+        context,
+        'Voice message must be at least 1 second.',
+        isError: true,
+      );
       try {
         await File(path).delete();
       } catch (_) {}
@@ -100,9 +116,30 @@ class VoiceRecorderHelper {
     return (path: path, durationMs: durationMs);
   }
 
+  Future<void> cancel() async {
+    _stopTimer();
+
+    final path = await recorder.stop();
+
+    isRecording = false;
+
+    if (path != null && path.isNotEmpty) {
+      try {
+        final file = File(path);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (_) {}
+    }
+  }
+
   String get recordingLabel => 'Recording ${formatDuration(recordDuration)}';
 
-  Future<void> togglePlayback(String url, String messageId, VoidCallback onUpdate) async {
+  Future<void> togglePlayback(
+    String url,
+    String messageId,
+    VoidCallback onUpdate,
+  ) async {
     if (playingMessageId == messageId) {
       await player.stop();
       playingMessageId = null;

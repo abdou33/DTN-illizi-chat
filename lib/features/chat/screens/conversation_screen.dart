@@ -232,6 +232,13 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
+  Future<void> _cancelVoice() async {
+    if (!_voice.isRecording) return;
+
+    await _voice.cancel();
+    _refresh();
+  }
+
   Future<void> getMessagesForChat() async {
     if (_loadingMoreMessages || !_hasMoreMessages) return;
 
@@ -547,6 +554,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                           showBubbleOptionsSheet(
                             context,
                             isself: message.senderId == _myId,
+                            istext: message.type.name == "text",
                             onSave: () {
                               saveFilelocally(message);
                             },
@@ -643,6 +651,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
             ),
             onSend: _sendText,
             onToggleRecord: _toggleVoice,
+            onCancelRecord: _cancelVoice,
             onTextChanged: _refresh,
           ),
         ],

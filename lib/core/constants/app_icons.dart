@@ -27,6 +27,7 @@ abstract final class AppIcons {
   static const attach = IconsaxPlusLinear.add_circle;
   static const send = IconsaxPlusLinear.send_2;
   static const mic = IconsaxPlusLinear.microphone;
+  static const cancel = IconsaxPlusLinear.trash;
   static const stop = IconsaxPlusLinear.stop_circle;
   static const sent = IconsaxPlusLinear.tick_circle;
   static const read = IconsaxPlusLinear.message_tick;
@@ -37,7 +38,7 @@ abstract final class AppIcons {
   static const gallery = IconsaxPlusLinear.gallery;
   static const camera = IconsaxPlusLinear.camera;
   static const video = IconsaxPlusLinear.video;
-  static const document = IconsaxPlusLinear.document;
+  static const document = IconsaxPlusLinear.document_1;
   static const play = IconsaxPlusLinear.play_circle;
   static const pause = IconsaxPlusLinear.pause_circle;
 

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
 import 'package:dtn_chat/core/utils/ui_utils.dart';
 import 'package:dtn_chat/data/models/chat_model.dart';
+import 'package:dtn_chat/data/services/FCM_service.dart';
 import 'package:dtn_chat/features/auth/screens/log_in_screen.dart';
 import 'package:dtn_chat/features/auth/screens/register_screen.dart';
 import 'package:dtn_chat/features/chat/screens/appintro_screen.dart';
@@ -33,9 +34,12 @@ class _SplashScreenState extends State<SplashScreen>
   var logger = Logger();
   final dio = Dio();
   bool _loading = false;
+  bool _serverError = false;
+  String _serverErrorMessage = '';
 
   @override
   void initState() {
+    FCMessagingService.initialize();
     super.initState();
     _logoCtrl = AnimationController(
       vsync: this,
@@ -82,21 +86,32 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _goNext() async {
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
-    await _fadeCtrl.forward();
-    if (!mounted) return;
-    bool loggedIn = await AuthService().userisloggedin();
-    bool isdisabled = false;
-    if (loggedIn) {
-      isdisabled = await verifyserver();
+
+    final loggedIn = await AuthService().userisloggedin();
+
+    if (!loggedIn) {
+      await _fadeCtrl.forward();
+      if (!mounted) return;
+
+      _navigate(const LogInScreen());
+      return;
     }
 
+    final isDisabled = await verifyServer();
+
+    // null = server unavailable
+    if (isDisabled == null || !mounted) return;
+
+    await _fadeCtrl.forward();
+    if (!mounted) return;
+
+    _navigate(isDisabled ? DisactivatedAccountScreen() : const ChatsScreen());
+  }
+
+  void _navigate(Widget page) {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, a, __) => loggedIn
-            ? isdisabled
-                  ? DisactivatedAccountScreen()
-                  : const ChatsScreen()
-            : const LogInScreen(), // WelcomeScreen previously
+        pageBuilder: (_, a, __) => page,
         transitionsBuilder: (_, a, __, child) =>
             FadeTransition(opacity: a, child: child),
         transitionDuration: const Duration(milliseconds: 600),
@@ -104,7 +119,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Future<bool> verifyserver() async {
+  Future<bool?> verifyServer() async {
     try {
       final response = await dio.get(
         "${AppUrls.api_url}/api/check-account",
@@ -114,27 +129,33 @@ class _SplashScreenState extends State<SplashScreen>
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ${AuthService.token}',
           },
-          validateStatus: (status) => true, // accept all codes
+          validateStatus: (status) => true,
         ),
       );
-      // logger.i("response: ${response.data}");
-      // logger.i("status: ${response.statusCode}");
 
       if (response.statusCode == 200) {
-        return response.data["is_disabled"];
-      } else {
-        throw Exception(
-          response.data['error']?.toString() ??
-              'Request failed with status code ${response.statusCode}',
-        );
+        return response.data["is_disabled"] == true;
       }
-    } catch (e) {
-      // logger.e(e);
+
       if (mounted) {
-        showAppSnackBar(context, cleanErrorMessage(e), isError: true);
+        setState(() {
+          _serverError = true;
+          _serverErrorMessage = 'The server is currently unavailable.';
+        });
       }
+
+      return null;
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _serverError = true;
+          _serverErrorMessage =
+              'Unable to connect to the server.\nPlease check your internet connection.';
+        });
+      }
+
+      return null;
     }
-    return false;
   }
 
   @override
@@ -158,26 +179,67 @@ class _SplashScreenState extends State<SplashScreen>
                 opacity: _logoOpacity.value,
                 child: Transform.scale(
                   scale: _logoScale.value,
-                  child: Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 30,
-                          offset: const Offset(0, 10),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 30,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          height: 60,
+                          width: 60,
+                          "assets/icon.png",
+                        ),
+                      ),
+
+                      if (_serverError) ...[
+                        const SizedBox(height: 30),
+
+                        const Icon(
+                          Icons.cloud_off,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: Text(
+                            _serverErrorMessage,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _serverError = false;
+                            });
+
+                            _goNext();
+                          },
+                          child: const Text('Retry'),
                         ),
                       ],
-                    ),
-                    // child: const Icon(AppIcons.chatBold, size: 60, color: AppColors.tealGreen),
-                    child: Image.asset(
-                      height: 60,
-                      width: 60,
-                      "assets/logo_green_transparent.png",
-                    ),
+                    ],
                   ),
                 ),
               ),
