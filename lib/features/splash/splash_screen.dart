@@ -4,9 +4,11 @@ import 'package:dtn_chat/core/utils/ui_utils.dart';
 import 'package:dtn_chat/data/models/chat_model.dart';
 import 'package:dtn_chat/features/auth/screens/log_in_screen.dart';
 import 'package:dtn_chat/features/auth/screens/register_screen.dart';
+import 'package:dtn_chat/features/chat/screens/appintro_screen.dart';
 import 'package:dtn_chat/features/chat/screens/disactivated_account.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_icons.dart';
 import '../../data/services/auth_service.dart';
@@ -55,7 +57,26 @@ class _SplashScreenState extends State<SplashScreen>
       end: 0,
     ).animate(CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut));
     _logoCtrl.forward();
-    _goNext();
+    _isfirsttime();
+  }
+
+  Future<void> _isfirsttime() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? isfirst = prefs.getBool("first");
+    print("first ::: ${isfirst}");
+    if (isfirst == true) {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (_, a, __) => AppIntroScreen(),
+          transitionsBuilder: (_, a, __, child) =>
+              FadeTransition(opacity: a, child: child),
+          transitionDuration: const Duration(milliseconds: 600),
+        ),
+      );
+    } else {
+      _goNext();
+    }
+    ;
   }
 
   Future<void> _goNext() async {

@@ -95,7 +95,6 @@ class _NewChatScreenState extends State<NewChatScreen> {
   }
 
   Future<void> _openChat(UserModel user) async {
-    print("user: ${user.toMap().toString()}");
     // final chatId = await _chat.getOrCreateChat(user.id);
     try {
       final response = await dio.post(
@@ -138,7 +137,6 @@ class _NewChatScreenState extends State<NewChatScreen> {
   void getcontacts() async {
     try {
       final contacts = await ContactsService.getPhoneNumbers();
-      print(contacts);
       if (contacts.isNotEmpty) {
         final response = await dio.post(
           "${AppUrls.api_url}/api/contacts/sync",
@@ -159,7 +157,6 @@ class _NewChatScreenState extends State<NewChatScreen> {
                 .map((e) => UserModel.fromMap(e))
                 .toList();
           });
-          print(_contacts_results);
         } else {
           throw Exception(
             response.data is Map<String, dynamic>

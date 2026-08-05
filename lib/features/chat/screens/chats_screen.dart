@@ -6,6 +6,7 @@ import 'package:dtn_chat/core/utils/ui_utils.dart';
 import 'package:dtn_chat/data/models/chat_model.dart';
 import 'package:dtn_chat/data/models/message_model.dart';
 import 'package:dtn_chat/data/services/reverb_service.dart';
+import 'package:dtn_chat/features/chat/screens/conversation_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:logger/logger.dart';
@@ -115,7 +116,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
                 title: const Text('Profile'),
                 onTap: () {
                   Navigator.pop(ctx);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  );
                 },
               ),
               ListTile(
@@ -260,8 +264,27 @@ class _ChatsScreenState extends State<ChatsScreen> {
             : ListView.builder(
                 padding: const EdgeInsets.only(top: 8),
                 itemCount: chats.length,
-                itemBuilder: (_, i) =>
-                    ChatListTile(chat: chats[i], searchQuery: _query),
+                itemBuilder: (_, i) => ChatListTile(
+                  chat: chats[i],
+                  searchQuery: _query,
+                  onTap: () {
+                    setState(() {
+                      chats[i] = chats[i].copyWith(unreadCount: 0);
+                    });
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ConversationScreen(
+                          otherUser: chats[i].participants.firstWhere(
+                            (u) => u.id != AuthService.currentUser!.id,
+                          ),
+                          chatId: chats[i].chatId,
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
       ),
       floatingActionButton: FloatingActionButton(

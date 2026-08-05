@@ -79,7 +79,7 @@ class RegisterScreenState extends State<ChangePwdScreen> {
         (_) => false,
       );
     } catch (e) {
-      print(e);
+      // print(e);
       if (mounted)
         showAppSnackBar(context, cleanErrorMessage(e), isError: true);
     } finally {

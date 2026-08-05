@@ -6,16 +6,17 @@ import '../../../core/widgets/user_avatar.dart';
 import '../../../data/models/chat_model.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/chat_service.dart';
-import '../screens/conversation_screen.dart';
 
 class ChatListTile extends StatelessWidget {
   final ChatModel chat;
   final String searchQuery;
+  final VoidCallback onTap;
 
   const ChatListTile({
     super.key,
     required this.chat,
     required this.searchQuery,
+    required this.onTap,
   });
 
   @override
@@ -34,13 +35,7 @@ class ChatListTile extends StatelessWidget {
     }
 
     return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) =>
-              ConversationScreen(otherUser: user, chatId: chat.chatId),
-        ),
-      ),
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
@@ -74,16 +69,49 @@ class ChatListTile extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    chat.lastMessage.isEmpty
-                        ? 'Start chatting'
-                        : chat.lastMessage,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      color: AppColors.textSecondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          chat.lastMessage.isEmpty
+                              ? 'Start chatting'
+                              : chat.lastMessage,
+                          style: chat.unreadCount > 0
+                              ? TextStyle(
+                                  fontSize: 15,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                )
+                              : TextStyle(
+                                  fontSize: 15,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (chat.unreadCount > 0)
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.iosBlue,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${chat.unreadCount}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),

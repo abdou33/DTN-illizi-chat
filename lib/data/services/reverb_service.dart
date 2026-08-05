@@ -7,10 +7,10 @@ class ReverbService {
   static var logger = Logger();
   static bool _connected = false;
   static final client = ReverbClient.instance(
-    host: '10.0.2.2',
-    port: 8081,
-    appKey: 'jjsxpvyww0vgmmql60um',
-    authEndpoint: 'http://10.0.2.2:8000/api/broadcasting/auth',
+    host: AppUrls.reverb_url,
+    port: AppUrls.reverb_port,
+    appKey: AppUrls.REVERB_APP_KEY,
+    authEndpoint: '${AppUrls.api_url}/api/broadcasting/auth',
     authorizer: (channelName, socketId) async {
       return {
         'Authorization': 'Bearer ${AuthService.token}',

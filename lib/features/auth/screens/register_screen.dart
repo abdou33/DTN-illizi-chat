@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
+import 'package:dtn_chat/data/services/FCM_service.dart';
 import 'package:dtn_chat/data/services/shared_preferences_service.dart';
 import 'package:dtn_chat/features/auth/screens/log_in_screen.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +52,7 @@ class RegisterScreenState extends State<RegisterScreen> {
           'name': _nameCtrl.text,
           'phonenumber': _phoneCtrl.text.trim(),
           'password': _passCtrl.text,
+          'fcm_token': await FCMessagingService.getToken(),
         },
         options: Options(
           headers: {

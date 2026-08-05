@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:dtn_chat/core/constants/app_urls.dart';
+import 'package:dtn_chat/data/services/FCM_service.dart';
 import 'package:dtn_chat/data/services/shared_preferences_service.dart';
 import 'package:dtn_chat/features/auth/screens/register_screen.dart';
 import 'package:dtn_chat/features/chat/screens/change_pwd_screen.dart';
@@ -41,12 +42,14 @@ class _LogInScreenState extends State<LogInScreen> {
   Future<void> _logIn() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
+    final fcmToken = await FCMessagingService.getToken();
     try {
       final response = await dio.post(
         "${AppUrls.api_url}/api/login",
         data: {
           'phonenumber': _phoneCtrl.text.trim(),
           'password': _passCtrl.text,
+          'fcm_token': fcmToken,
         },
         options: Options(
           headers: {

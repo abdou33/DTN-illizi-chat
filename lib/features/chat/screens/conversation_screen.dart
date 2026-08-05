@@ -54,6 +54,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
   bool _sending = false;
   bool _loading = false;
 
+  // msg pagination
+  bool _hasMoreMessages = true;
+  bool _loadingMoreMessages = false;
+  String? _beforeMessageId;
+
   List<MessageModel> messages = [];
 
   @override
@@ -64,17 +69,29 @@ class _ConversationScreenState extends State<ConversationScreen> {
     // _chat.markMessagesAsRead(widget.chatId);
     _voice.init(() => setState(() {}));
     _listenToConversation();
+    _scrollCtrl.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _msgCtrl.dispose();
+    _scrollCtrl.removeListener(_onScroll);
     _scrollCtrl.dispose();
     _voice.dispose();
     ReverbService.client.unsubscribeFromChannel(
       'private-conversation.${widget.chatId}',
     );
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollCtrl.hasClients) return;
+
+    if (_scrollCtrl.position.pixels <= 100 &&
+        _hasMoreMessages &&
+        !_loadingMoreMessages) {
+      getMessagesForChat();
+    }
   }
 
   void _refresh() => setState(() {});
@@ -215,49 +232,92 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
-  void getMessagesForChat() async {
-    setState(() {
-      _loading = true;
-    });
+  Future<void> getMessagesForChat() async {
+    if (_loadingMoreMessages || !_hasMoreMessages) return;
+
+    final isInitialLoad = _beforeMessageId == null;
+
+    if (isInitialLoad) {
+      if (mounted) {
+        setState(() => _loading = true);
+      }
+    } else {
+      if (mounted) {
+        setState(() => _loadingMoreMessages = true);
+      }
+    }
+
+    // Save position before adding older messages
+    final oldScrollPosition = _scrollCtrl.hasClients
+        ? _scrollCtrl.position.pixels
+        : 0.0;
+
+    final oldScrollExtent = _scrollCtrl.hasClients
+        ? _scrollCtrl.position.maxScrollExtent
+        : 0.0;
+
     try {
       final response = await dio.get(
         "${AppUrls.api_url}/api/conversations/${widget.chatId}/messages",
+        queryParameters: {
+          if (_beforeMessageId != null) 'before': _beforeMessageId,
+        },
         options: Options(
           headers: {
             "Accept": "application/json",
-            "Content-Type": "application/json",
             "Authorization": "Bearer ${AuthService.token}",
           },
           validateStatus: (status) => true,
         ),
       );
 
-      if (response.statusCode == 200) {
-        setState(() {
-          messages = (response.data as List)
-              .map((e) => MessageModel.fromMap(e))
-              .toList();
-        });
-      } else {
+      if (response.statusCode != 200) {
         throw Exception(
-          response.data is Map<String, dynamic>
+          response.data is Map
               ? response.data["error"]?.toString() ??
                     "Request failed with status ${response.statusCode}"
               : response.data.toString(),
         );
       }
+
+      final data = response.data;
+
+      final newMessages = (data['data'] as List)
+          .map((e) => MessageModel.fromMap(e))
+          .toList();
+
+      if (!mounted) return;
+
+      setState(() {
+        if (isInitialLoad) {
+          messages = newMessages;
+        } else {
+          messages.insertAll(0, newMessages);
+        }
+
+        _hasMoreMessages = data['has_more'] == true;
+        _beforeMessageId = data['next_before']?.toString();
+      });
+
+      // Initial load → go to bottom
+      if (isInitialLoad) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _scrollToBottom();
+          }
+        });
+      }
     } catch (e) {
-      // logger.e(e);
       if (mounted) {
         showAppSnackBar(context, cleanErrorMessage(e), isError: true);
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _loading = false;
-        });
-      }
-      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+        _loadingMoreMessages = false;
+      });
     }
   }
 
@@ -461,33 +521,54 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       horizontal: 12,
                       vertical: 8,
                     ),
-                    itemCount: messages.length,
-                    itemBuilder: (_, i) => InkWell(
-                      onLongPress: () {
-                        showBubbleOptionsSheet(
-                          context,
-                          isself: messages[i].senderId == _myId,
-                          onSave: () {
-                            saveFilelocally(messages[i]);
-                          },
-                          onDelete: () {
-                            deleteMessage(messages[i]);
-                          },
+                    itemCount: messages.length + (_loadingMoreMessages ? 1 : 0),
+                    itemBuilder: (_, i) {
+                      // Loading indicator at the very top
+                      if (_loadingMoreMessages && i == 0) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Center(
+                            child: SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                              ),
+                            ),
+                          ),
                         );
-                      },
-                      child: MessageBubble(
-                        message: messages[i],
-                        isMe: messages[i].senderId == _myId,
-                        playingMessageId: _voice.playingMessageId,
-                        onPlayAudio: (url, id) {
-                          _voice.togglePlayback(
-                            '${AppUrls.api_url}/storage/$url',
-                            id,
-                            _refresh,
+                      }
+
+                      final messageIndex = _loadingMoreMessages ? i - 1 : i;
+                      final message = messages[messageIndex];
+
+                      return InkWell(
+                        onLongPress: () {
+                          showBubbleOptionsSheet(
+                            context,
+                            isself: message.senderId == _myId,
+                            onSave: () {
+                              saveFilelocally(message);
+                            },
+                            onDelete: () {
+                              deleteMessage(message);
+                            },
                           );
                         },
-                      ),
-                    ),
+                        child: MessageBubble(
+                          message: message,
+                          isMe: message.senderId == _myId,
+                          playingMessageId: _voice.playingMessageId,
+                          onPlayAudio: (url, id) {
+                            _voice.togglePlayback(
+                              '${AppUrls.api_url}/storage/$url',
+                              id,
+                              _refresh,
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
           ),
           if (_voice.isRecording)

@@ -1,4 +1,7 @@
+import 'package:dtn_chat/data/services/FCM_service.dart';
 import 'package:dtn_chat/data/services/auth_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:media_store_plus/media_store_plus.dart';
@@ -7,6 +10,11 @@ import 'core/constants/app_colors.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  await FCMessagingService.initialize();
+  await FCMessagingService.handleInitialMessage();
 
   await MediaStore.ensureInitialized();
   MediaStore.appFolder = 'dtnchat';
