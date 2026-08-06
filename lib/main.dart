@@ -10,12 +10,10 @@ import 'core/constants/app_colors.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp();
+  FCMessagingService.initialize();
 
-  FirebaseMessaging.onBackgroundMessage(
-    firebaseMessagingBackgroundHandler,
-  );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   await MediaStore.ensureInitialized();
   MediaStore.appFolder = 'dtnchat';

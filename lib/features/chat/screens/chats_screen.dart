@@ -39,6 +39,8 @@ class _ChatsScreenState extends State<ChatsScreen> {
   final dio = Dio();
   var logger = Logger();
 
+  bool _showConnectionError = false;
+
   @override
   void initState() {
     super.initState();
@@ -55,8 +57,32 @@ class _ChatsScreenState extends State<ChatsScreen> {
     super.dispose();
   }
 
-  void _listenForChatUpdates() async {
-    await ReverbService.connect();
+  Future<void> _listenForChatUpdates() async {
+    int failures = 0;
+
+    while (mounted) {
+      final connected = await ReverbService.connect();
+      // logger.w("connected?? ::::: $connected");
+      if (connected) {
+        if (_showConnectionError) {
+          setState(() => _showConnectionError = false);
+        }
+
+        _subscribeToChannel();
+        return;
+      }
+
+      failures++;
+
+      if (failures >= 3 && mounted && !_showConnectionError) {
+        setState(() => _showConnectionError = true);
+      }
+
+      await Future.delayed(const Duration(seconds: 3));
+    }
+  }
+
+  void _subscribeToChannel() {
     final userId = AuthService.currentUser!.id;
 
     _userChannel = ReverbService.client.subscribeToPrivateChannel(
@@ -89,12 +115,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
         chats.removeAt(index);
         chats.insert(0, updatedChat);
       });
-    });
-  }
-
-  void _updateChatList(MessageModel message) {
-    setState(() {
-      // update your ChatModel here
     });
   }
 
@@ -163,10 +183,6 @@ class _ChatsScreenState extends State<ChatsScreen> {
           validateStatus: (status) => true, // accept all codes
         ),
       );
-      // logger.i("response: ${response.data}");
-      // logger.i("status: ${response.statusCode}");
-      // logger.i("type: ${response.data.runtimeType}");
-      // logger.i("data: ${response.data}");
 
       if (response.statusCode == 200) {
         setState(() {
@@ -234,58 +250,88 @@ class _ChatsScreenState extends State<ChatsScreen> {
           ),
         ],
       ),
-      body: RefreshIndicator.adaptive(
-        onRefresh: _getchats,
-        child: _loading
-            ? Container(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 20,
-                  children: [
-                    SizedBox(
-                      height: 35,
-                      width: 35,
-                      child: CircularProgressIndicator(),
-                    ),
-                    const EmptyState(
-                      icon: IconsaxPlusLinear.messages_3,
-                      title: 'Loading your conversations ;)',
-                      subtitle: '',
-                    ),
-                  ],
-                ),
-              )
-            : chats.isEmpty
-            ? const EmptyState(
-                icon: AppIcons.chat,
-                title: 'No conversations yet',
-                subtitle: 'Start a new chat to begin messaging',
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.only(top: 8),
-                itemCount: chats.length,
-                itemBuilder: (_, i) => ChatListTile(
-                  chat: chats[i],
-                  searchQuery: _query,
-                  onTap: () {
-                    setState(() {
-                      chats[i] = chats[i].copyWith(unreadCount: 0);
-                    });
-
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ConversationScreen(
-                          otherUser: chats[i].participants.firstWhere(
-                            (u) => u.id != AuthService.currentUser!.id,
-                          ),
-                          chatId: chats[i].chatId,
+      body: Column(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            height: _showConnectionError ? 40 : 0,
+            width: double.infinity,
+            color: Colors.orange,
+            child: _showConnectionError
+                ? const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.wifi_off_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'No internet connection • Reconnecting...',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
+          Expanded(
+            child: RefreshIndicator.adaptive(
+              onRefresh: _getchats,
+              child: _loading
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 20,
+                      children: [
+                        const SizedBox(
+                          height: 35,
+                          width: 35,
+                          child: CircularProgressIndicator(),
+                        ),
+                        const EmptyState(
+                          icon: IconsaxPlusLinear.messages_3,
+                          title: 'Loading your conversations ;)',
+                          subtitle: '',
+                        ),
+                      ],
+                    )
+                  : chats.isEmpty
+                  ? const EmptyState(
+                      icon: AppIcons.chat,
+                      title: 'No conversations yet',
+                      subtitle: 'Start a new chat to begin messaging',
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.only(top: 8),
+                      itemCount: chats.length,
+                      itemBuilder: (_, i) => ChatListTile(
+                        chat: chats[i],
+                        searchQuery: _query,
+                        onTap: () {
+                          setState(() {
+                            chats[i] = chats[i].copyWith(unreadCount: 0);
+                          });
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ConversationScreen(
+                                otherUser: chats[i].participants.firstWhere(
+                                  (u) => u.id != AuthService.currentUser!.id,
+                                ),
+                                chatId: chats[i].chatId,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(

@@ -39,7 +39,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
-    FCMessagingService.initialize();
     super.initState();
     _logoCtrl = AnimationController(
       vsync: this,
@@ -66,9 +65,13 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _isfirsttime() async {
     final prefs = await SharedPreferences.getInstance();
-    bool? isfirst = prefs.getBool("first");
-    print("first ::: ${isfirst}");
-    if (isfirst == true) {
+
+    if (!mounted) return;
+
+    final isFirst = prefs.getBool("first");
+    print("first ::: $isFirst");
+
+    if (isFirst == true) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (_, a, __) => AppIntroScreen(),
@@ -78,9 +81,8 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       );
     } else {
-      _goNext();
+      await _goNext();
     }
-    ;
   }
 
   Future<void> _goNext() async {
@@ -133,18 +135,28 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       );
 
-      if (response.statusCode == 200) {
-        return response.data["is_disabled"] == true;
-      }
+      switch (response.statusCode) {
+        case 200:
+          return response.data["is_disabled"] == true;
 
-      if (mounted) {
-        setState(() {
-          _serverError = true;
-          _serverErrorMessage = 'The server is currently unavailable.';
-        });
-      }
+        case 401:
+          await AuthService().logout();
 
-      return null;
+          if (!mounted) return null;
+
+          await _fadeCtrl.forward();
+
+          _navigate(const LogInScreen());
+
+          return null;
+
+        default:
+          setState(() {
+            _serverError = true;
+            _serverErrorMessage = "The server is currently unavailable.";
+          });
+          return null;
+      }
     } catch (e) {
       if (mounted) {
         setState(() {

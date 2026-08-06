@@ -1,10 +1,10 @@
+import 'dart:io';
+
 import 'package:dtn_chat/core/constants/app_urls.dart';
-import 'package:logger/logger.dart';
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 import 'auth_service.dart';
 
 class ReverbService {
-  static var logger = Logger();
   static bool _connected = false;
   static final client = ReverbClient.instance(
     host: AppUrls.reverb_url,
@@ -19,26 +19,49 @@ class ReverbService {
     },
   );
 
-  static Future<void> connect() async {
-    if (_connected) return;
+  static Future<bool> _isReverbReachable() async {
+    try {
+      final socket = await Socket.connect(
+        AppUrls.reverb_url,
+        AppUrls.reverb_port,
+        timeout: const Duration(seconds: 2),
+      );
 
-    final state = client.onConnectionStateChange;
-
-    await client.connect();
-
-    await for (final connectionState in state) {
-      // logger.i("Reverb state: $connectionState");
-
-      if (connectionState == ConnectionState.connected) {
-        _connected = true;
-        // logger.i("Reverb connected");
-        break;
-      }
-
-      if (connectionState == ConnectionState.error) {
-        throw Exception("Failed to connect to Reverb");
-      }
+      socket.destroy();
+      return true;
+    } catch (_) {
+      return false;
     }
+  }
+
+  static Future<bool> connect() async {
+    if (_connected) return true;
+
+    if (!await _isReverbReachable()) {
+      return false;
+    }
+
+    try {
+      final state = client.onConnectionStateChange;
+
+      await client.connect();
+
+      await for (final connectionState in state) {
+        if (connectionState == ConnectionState.connected) {
+          _connected = true;
+          return true;
+        }
+
+        if (connectionState == ConnectionState.error) {
+          return false;
+        }
+      }
+    } catch (_) {
+      _connected = false;
+      return false;
+    }
+
+    return false;
   }
 
   static void listen() {
