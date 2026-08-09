@@ -13,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_icons.dart';
 import '../../data/services/auth_service.dart';
-import '../../data/services/local_db.dart';
 import '../auth/screens/welcome_screen.dart';
 import '../chat/screens/chats_screen.dart';
 

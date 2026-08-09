@@ -7,7 +7,6 @@ import 'package:dtn_chat/data/services/auth_service.dart';
 import '../models/message_model.dart';
 import '../models/chat_model.dart';
 import '../models/user_model.dart';
-import 'local_db.dart';
 
 class ChatService {
   final dio = Dio();

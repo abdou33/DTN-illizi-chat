@@ -4,7 +4,6 @@ import 'package:dtn_chat/data/services/shared_preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_model.dart';
-import 'local_db.dart';
 
 class AuthService {
   static String? token;

@@ -14,10 +14,10 @@ class FCMessagingService {
   static String? token;
 
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
-    'chat_messages',
+    'chat_messages_v2',
     'Chat Messages',
     description: 'Notifications for new DTN Chat messages',
-    importance: Importance.high,
+    importance: Importance.max,
     playSound: true,
   );
 
@@ -127,13 +127,13 @@ class FCMessagingService {
       body: body,
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
-          sound ? 'chat_messages' : 'chat_messages_silent',
-          sound ? 'Chat Messages' : 'Chat Messages Silent',
+          'chat_messages_v2',
+          'Chat Messages',
           channelDescription: 'DTN Chat message notifications',
-          importance: Importance.high,
-          priority: Priority.high,
-          playSound: sound,
-          enableVibration: sound,
+          importance: Importance.max,
+          priority: Priority.max,
+          playSound: true,
+          enableVibration: true,
         ),
       ),
       payload: jsonEncode(message.data),

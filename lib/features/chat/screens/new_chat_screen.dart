@@ -12,7 +12,6 @@ import '../../../core/widgets/user_avatar.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/chat_service.dart';
-import '../../../data/services/local_db.dart';
 import 'conversation_screen.dart';
 
 class NewChatScreen extends StatefulWidget {
@@ -216,27 +215,30 @@ class _NewChatScreenState extends State<NewChatScreen> {
             ),
           ),
           Expanded(
-            child: _searchCtrl.text.isNotEmpty
-                ? _buildSearchResults()
-                : SizedBox.shrink(),
-          ),
+            child: ListView(
+              children: [
+                if (_searchCtrl.text.isNotEmpty) _buildSearchResults(),
 
-          _contacts_results.isEmpty
-              ? SizedBox.shrink()
-              : Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    spacing: 10,
-                    children: [
-                      const Icon(
-                        AppIcons.contacts,
-                        color: AppColors.textSecondary,
-                      ),
-                      Text("your Contacts on DTN chat:"),
-                    ],
+                if (_contacts_results.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      spacing: 10,
+                      children: [
+                        const Icon(
+                          AppIcons.contacts,
+                          color: AppColors.textSecondary,
+                        ),
+                        const Text("your Contacts on DTN chat:"),
+                      ],
+                    ),
                   ),
-                ),
-          Expanded(child: _buildContactResults()),
+                  _buildContactResults(),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -275,11 +277,9 @@ class _NewChatScreenState extends State<NewChatScreen> {
         ),
       );
     }
-    return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: users.length,
-      itemBuilder: (_, i) {
-        final user = users[i];
+
+    return Column(
+      children: users.map((user) {
         return ListTile(
           leading: UserAvatar(user: user, radius: 24),
           title: Text(user.name),
@@ -289,7 +289,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
           ),
           onTap: () => _openChat(user),
         );
-      },
+      }).toList(),
     );
   }
 }

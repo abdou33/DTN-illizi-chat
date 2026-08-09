@@ -15,7 +15,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../data/services/auth_service.dart';
-import '../../../data/services/local_db.dart';
 import '../../auth/screens/welcome_screen.dart';
 import 'new_chat_screen.dart';
 import 'profile_screen.dart';
@@ -310,12 +309,12 @@ class _ChatsScreenState extends State<ChatsScreen> {
                       itemBuilder: (_, i) => ChatListTile(
                         chat: chats[i],
                         searchQuery: _query,
-                        onTap: () {
+                        onTap: () async {
                           setState(() {
                             chats[i] = chats[i].copyWith(unreadCount: 0);
                           });
 
-                          Navigator.push(
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => ConversationScreen(
@@ -326,6 +325,10 @@ class _ChatsScreenState extends State<ChatsScreen> {
                               ),
                             ),
                           );
+
+                          if (!mounted) return;
+
+                          await _getchats();
                         },
                       ),
                     ),

@@ -16,7 +16,7 @@ Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   await MediaStore.ensureInitialized();
-  MediaStore.appFolder = 'dtnchat';
+  MediaStore.appFolder = 'W33_chat';
 
   await AuthService.loadToken();
 

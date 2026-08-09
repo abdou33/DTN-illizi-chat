@@ -9,7 +9,6 @@ import '../../../core/utils/ui_utils.dart';
 import '../../../core/widgets/user_avatar.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/auth_service.dart';
-import '../../../data/services/local_db.dart';
 import '../../../data/services/storage_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -36,9 +35,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
-      body: ListenableBuilder(
-        listenable: LocalDb(),
-        builder: (_, __) {
+      body: Builder(
+        builder: (_) {
           final user = AuthService.currentUser;
           if (user == null) {
             return const Center(child: Text('Not logged in'));

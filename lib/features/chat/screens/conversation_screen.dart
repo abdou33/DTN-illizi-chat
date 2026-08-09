@@ -19,7 +19,6 @@ import '../../../data/models/message_model.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/chat_service.dart';
-import '../../../data/services/local_db.dart';
 import '../../../data/services/storage_service.dart';
 import '../helpers/voice_recorder_helper.dart';
 import '../widgets/attachment_sheet.dart';
@@ -375,7 +374,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         tempFilePath: tempPath,
         dirType: DirType.download,
         dirName: DirName.download,
-        relativePath: 'dtnchat',
+        relativePath: 'W33_chat',
       );
 
       final tempFile = File(tempPath);
@@ -385,7 +384,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
       if (!context.mounted) return;
 
-      showAppSnackBar(context, 'File saved successfully', isError: false);
+      showAppSnackBar(context, 'File saved successfully To /Downloads/W33_chat', isError: false);
     } catch (e) {
       if (!context.mounted) return;
 
