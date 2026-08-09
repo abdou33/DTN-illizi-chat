@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:dtn_chat/core/constants/app_urls.dart';
-import 'package:dtn_chat/core/utils/ui_utils.dart';
-import 'package:dtn_chat/data/models/chat_model.dart';
-import 'package:dtn_chat/data/models/message_model.dart';
-import 'package:dtn_chat/data/services/reverb_service.dart';
-import 'package:dtn_chat/features/chat/screens/conversation_screen.dart';
+import 'package:wilaya_illizi_chat/core/constants/app_urls.dart';
+import 'package:wilaya_illizi_chat/core/utils/ui_utils.dart';
+import 'package:wilaya_illizi_chat/data/models/chat_model.dart';
+import 'package:wilaya_illizi_chat/data/models/message_model.dart';
+import 'package:wilaya_illizi_chat/data/services/reverb_service.dart';
+import 'package:wilaya_illizi_chat/features/chat/screens/conversation_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:logger/logger.dart';

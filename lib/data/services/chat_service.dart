@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dtn_chat/core/constants/app_urls.dart';
-import 'package:dtn_chat/data/services/auth_service.dart';
+import 'package:wilaya_illizi_chat/core/constants/app_urls.dart';
+import 'package:wilaya_illizi_chat/data/services/auth_service.dart';
 
 import '../models/message_model.dart';
 import '../models/chat_model.dart';

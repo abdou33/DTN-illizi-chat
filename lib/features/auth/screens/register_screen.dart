@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:dtn_chat/core/constants/app_urls.dart';
-import 'package:dtn_chat/data/services/FCM_service.dart';
-import 'package:dtn_chat/data/services/shared_preferences_service.dart';
-import 'package:dtn_chat/features/auth/screens/log_in_screen.dart';
+import 'package:wilaya_illizi_chat/data/services/FCM_service.dart';
+import 'package:wilaya_illizi_chat/data/services/shared_preferences_service.dart';
+import 'package:wilaya_illizi_chat/features/auth/screens/log_in_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:wilaya_illizi_chat/core/constants/app_urls.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_styles.dart';

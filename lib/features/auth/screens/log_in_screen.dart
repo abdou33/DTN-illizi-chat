@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:dtn_chat/core/constants/app_urls.dart';
-import 'package:dtn_chat/data/services/FCM_service.dart';
-import 'package:dtn_chat/data/services/shared_preferences_service.dart';
-import 'package:dtn_chat/features/auth/screens/register_screen.dart';
-import 'package:dtn_chat/features/chat/screens/change_pwd_screen.dart';
+import 'package:wilaya_illizi_chat/core/constants/app_urls.dart';
+import 'package:wilaya_illizi_chat/data/services/FCM_service.dart';
+import 'package:wilaya_illizi_chat/data/services/shared_preferences_service.dart';
+import 'package:wilaya_illizi_chat/features/auth/screens/register_screen.dart';
+import 'package:wilaya_illizi_chat/features/chat/screens/change_pwd_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
@@ -98,7 +98,7 @@ class _LogInScreenState extends State<LogInScreen> {
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
-      title: 'DTN Chat',
+      title: 'Wilaya Illizi Chat',
       footer: Center(
         child: TextButton(
           onPressed: () => Navigator.of(context).pushAndRemoveUntil(
@@ -132,7 +132,7 @@ class _LogInScreenState extends State<LogInScreen> {
               maxLength: 10,
               decoration: AppStyles.inputDecoration(
                 label: 'Phone Number',
-                hint: '06XX XXX XXX',
+                hint: '06XXXXXXXX',
                 prefixIcon: AppIcons.phone,
               ),
               validator: FormValidators.phone,

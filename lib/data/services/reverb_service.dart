@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:dtn_chat/core/constants/app_urls.dart';
+import 'package:wilaya_illizi_chat/core/constants/app_urls.dart';
 import 'package:pusher_reverb_flutter/pusher_reverb_flutter.dart';
 import 'auth_service.dart';
 

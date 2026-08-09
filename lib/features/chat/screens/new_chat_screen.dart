@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:dtn_chat/core/constants/app_urls.dart';
-import 'package:dtn_chat/core/utils/ui_utils.dart';
-import 'package:dtn_chat/data/services/contacts_service.dart';
+import 'package:wilaya_illizi_chat/core/constants/app_urls.dart';
+import 'package:wilaya_illizi_chat/core/utils/ui_utils.dart';
+import 'package:wilaya_illizi_chat/data/services/contacts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../../../core/constants/app_colors.dart';
@@ -230,7 +230,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
                           AppIcons.contacts,
                           color: AppColors.textSecondary,
                         ),
-                        const Text("your Contacts on DTN chat:"),
+                        const Text("your Contacts on Wilaya Illizi Chat:"),
                       ],
                     ),
                   ),

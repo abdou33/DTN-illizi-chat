@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:dtn_chat/core/constants/app_urls.dart';
-import 'package:dtn_chat/features/chat/screens/fullscreen_image.dart';
+import 'package:wilaya_illizi_chat/core/constants/app_urls.dart';
+import 'package:wilaya_illizi_chat/features/chat/screens/fullscreen_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';

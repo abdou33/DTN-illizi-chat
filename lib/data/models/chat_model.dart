@@ -1,4 +1,4 @@
-import 'package:dtn_chat/data/models/user_model.dart';
+import 'package:wilaya_illizi_chat/data/models/user_model.dart';
 
 class ChatModel {
   final String chatId;

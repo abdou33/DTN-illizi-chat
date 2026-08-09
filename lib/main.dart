@@ -1,5 +1,5 @@
-import 'package:dtn_chat/data/services/FCM_service.dart';
-import 'package:dtn_chat/data/services/auth_service.dart';
+import 'package:wilaya_illizi_chat/data/services/FCM_service.dart';
+import 'package:wilaya_illizi_chat/data/services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';

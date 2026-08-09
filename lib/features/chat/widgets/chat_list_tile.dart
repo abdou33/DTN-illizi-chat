@@ -1,4 +1,4 @@
-import 'package:dtn_chat/data/services/auth_service.dart';
+import 'package:wilaya_illizi_chat/data/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/date_utils.dart';

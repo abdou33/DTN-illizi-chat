@@ -16,7 +16,7 @@ class FCMessagingService {
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'chat_messages_v2',
     'Chat Messages',
-    description: 'Notifications for new DTN Chat messages',
+    description: 'Notifications for new Wilaya Illizi Chat messages',
     importance: Importance.max,
     playSound: true,
   );
@@ -129,7 +129,7 @@ class FCMessagingService {
         android: AndroidNotificationDetails(
           'chat_messages_v2',
           'Chat Messages',
-          channelDescription: 'DTN Chat message notifications',
+          channelDescription: 'Wilaya Illizi Chat message notifications',
           importance: Importance.max,
           priority: Priority.max,
           playSound: true,

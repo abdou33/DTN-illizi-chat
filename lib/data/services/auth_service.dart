@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:dtn_chat/data/services/shared_preferences_service.dart';
+import 'package:wilaya_illizi_chat/data/services/shared_preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_model.dart';

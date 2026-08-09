@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:dtn_chat/core/constants/app_urls.dart';
-import 'package:dtn_chat/core/utils/ui_utils.dart';
-import 'package:dtn_chat/data/models/chat_model.dart';
-import 'package:dtn_chat/data/services/FCM_service.dart';
-import 'package:dtn_chat/features/auth/screens/log_in_screen.dart';
-import 'package:dtn_chat/features/auth/screens/register_screen.dart';
-import 'package:dtn_chat/features/chat/screens/appintro_screen.dart';
-import 'package:dtn_chat/features/chat/screens/disactivated_account.dart';
+import 'package:wilaya_illizi_chat/core/constants/app_urls.dart';
+import 'package:wilaya_illizi_chat/core/utils/ui_utils.dart';
+import 'package:wilaya_illizi_chat/data/models/chat_model.dart';
+import 'package:wilaya_illizi_chat/data/services/FCM_service.dart';
+import 'package:wilaya_illizi_chat/features/auth/screens/log_in_screen.dart';
+import 'package:wilaya_illizi_chat/features/auth/screens/register_screen.dart';
+import 'package:wilaya_illizi_chat/features/chat/screens/appintro_screen.dart';
+import 'package:wilaya_illizi_chat/features/chat/screens/disactivated_account.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen>
     final isFirst = prefs.getBool("first");
     print("first ::: $isFirst");
 
-    if (isFirst == true) {
+    if (isFirst != false) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (_, a, __) => AppIntroScreen(),

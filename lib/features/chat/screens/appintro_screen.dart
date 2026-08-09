@@ -1,6 +1,6 @@
-import 'package:dtn_chat/features/auth/screens/log_in_screen.dart';
+import 'package:wilaya_illizi_chat/features/auth/screens/log_in_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:dtn_chat/core/constants/app_colors.dart';
+import 'package:wilaya_illizi_chat/core/constants/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppIntroScreen extends StatefulWidget {
@@ -17,21 +17,21 @@ class _AppIntroScreenState extends State<AppIntroScreen> {
   final List<_IntroPage> _pages = const [
     _IntroPage(
       icon: Icons.chat_bubble_rounded,
-      title: 'Welcome to DTN Chat',
+      title: 'Welcome to Wilaya Illizi Chat',
       description:
-          'A private communication platform provided by DTN Illizi for authorized personnel and users.',
+          'A private communication platform provided by Wilaya Illizi for authorized personnel and users.',
     ),
     _IntroPage(
       icon: Icons.dns_rounded,
       title: 'Your Data, DTN Servers',
       description:
-          'Your account information, conversations, and shared files are stored on servers managed by DTN Illizi.',
+          'Your account information, conversations, and shared files are securily stored on servers managed by DTN Illizi.',
     ),
     _IntroPage(
       icon: Icons.verified_user_rounded,
-      title: 'Private & Authorized',
+      title: 'Private & Secure',
       description:
-          'DTN Chat is intended for authorized users. Please keep your account credentials private and use the application responsibly.',
+          'Wilaya Illizi Chat is intended for authorized users. Please keep your account credentials private and use the application responsibly.',
     ),
   ];
 

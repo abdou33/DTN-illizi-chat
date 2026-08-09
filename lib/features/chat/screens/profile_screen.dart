@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:dtn_chat/core/widgets/primary_button.dart';
-import 'package:dtn_chat/features/chat/screens/change_pwd_screen.dart';
+import 'package:wilaya_illizi_chat/core/widgets/primary_button.dart';
+import 'package:wilaya_illizi_chat/features/chat/screens/change_pwd_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_colors.dart';
@@ -186,7 +186,7 @@ class _InfoCard extends StatelessWidget {
             // _Row(
             //   AppIcons.info,
             //   'About',
-            //   user.id ?? 'Hey there! I am using DTN Chat',
+            //   user.id ?? 'Hey there! I am using Wilaya Illizi Chat',
             //   () => onEdit('about'),
             // ),
             const Divider(height: 1, indent: 56),

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:dtn_chat/core/constants/app_urls.dart';
-import 'package:dtn_chat/data/services/reverb_service.dart';
+import 'package:wilaya_illizi_chat/core/constants/app_urls.dart';
+import 'package:wilaya_illizi_chat/data/services/reverb_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -50,6 +50,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   var logger = Logger();
 
   late final String _myId;
+  bool _initialScrollDone = false;
   bool _sending = false;
   bool _loading = false;
 
@@ -84,7 +85,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   }
 
   void _onScroll() {
-    if (!_scrollCtrl.hasClients) return;
+    if (!_initialScrollDone || !_scrollCtrl.hasClients) return;
 
     if (_scrollCtrl.position.pixels <= 100 &&
         _hasMoreMessages &&
@@ -96,15 +97,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
   void _refresh() => setState(() {});
 
   void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollCtrl.hasClients) {
-        _scrollCtrl.animateTo(
-          _scrollCtrl.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
+    if (_scrollCtrl.hasClients) {
+      _scrollCtrl.jumpTo(_scrollCtrl.position.maxScrollExtent);
+    }
   }
 
   Future<void> _sendText() async {
@@ -307,9 +302,19 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
       // Initial load → go to bottom
       if (isInitialLoad) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) return;
+
+          await Future.delayed(const Duration(milliseconds: 100));
+
+          if (!mounted) return;
+
+          _scrollToBottom();
+
+          await Future.delayed(const Duration(milliseconds: 400));
+
           if (mounted) {
-            _scrollToBottom();
+            _initialScrollDone = true;
           }
         });
       }
@@ -384,7 +389,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
       if (!context.mounted) return;
 
-      showAppSnackBar(context, 'File saved successfully To /Downloads/W33_chat', isError: false);
+      showAppSnackBar(
+        context,
+        'File saved successfully To /Downloads/W33_chat',
+        isError: false,
+      );
     } catch (e) {
       if (!context.mounted) return;
 
