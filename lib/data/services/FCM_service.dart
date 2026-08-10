@@ -42,7 +42,7 @@ class FCMessagingService {
     token = await _messaging.getToken();
 
     if (kDebugMode) {
-      print('FCM TOKEN: $token');
+      // print('FCM TOKEN: $token');
     }
 
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
@@ -53,7 +53,7 @@ class FCMessagingService {
       token = newToken;
 
       if (kDebugMode) {
-        print('FCM TOKEN REFRESHED: $newToken');
+        // print('FCM TOKEN REFRESHED: $newToken');
       }
 
       // Send newToken to Laravel here if needed.
@@ -68,14 +68,14 @@ class FCMessagingService {
     );
 
     if (kDebugMode) {
-      print('Notification permission: ${settings.authorizationStatus}');
+      // print('Notification permission: ${settings.authorizationStatus}');
     }
   }
 
   // App is OPEN
   static Future<void> _onForegroundMessage(RemoteMessage message) async {
     if (kDebugMode) {
-      print('FCM foreground: ${message.data}');
+      // print('FCM foreground: ${message.data}');
     }
 
     await _showNotification(message, sound: false);
@@ -84,7 +84,7 @@ class FCMessagingService {
   // App is BACKGROUND and notification is tapped
   static void _onMessageOpenedApp(RemoteMessage message) {
     if (kDebugMode) {
-      print('FCM opened: ${message.data}');
+      // print('FCM opened: ${message.data}');
     }
 
     _handleNotificationData(message.data);
@@ -150,7 +150,7 @@ class FCMessagingService {
 
   static void _handleNotificationData(Map<String, dynamic> data) {
     if (kDebugMode) {
-      print('Notification data: $data');
+      // print('Notification data: $data');
     }
 
     final conversationId = data['conversation_id'];
@@ -174,6 +174,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
   if (kDebugMode) {
-    print('FCM BACKGROUND: ${message.data}');
+    // print('FCM BACKGROUND: ${message.data}');
   }
 }

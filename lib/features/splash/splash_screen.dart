@@ -68,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     final isFirst = prefs.getBool("first");
-    print("first ::: $isFirst");
+    // print("first ::: $isFirst");
 
     if (isFirst != false) {
       Navigator.of(context).pushReplacement(

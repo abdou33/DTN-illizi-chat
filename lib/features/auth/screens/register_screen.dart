@@ -4,6 +4,7 @@ import 'package:wilaya_illizi_chat/data/services/shared_preferences_service.dart
 import 'package:wilaya_illizi_chat/features/auth/screens/log_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:wilaya_illizi_chat/core/constants/app_urls.dart';
+import 'package:wilaya_illizi_chat/features/chat/screens/disactivated_account.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_styles.dart';
@@ -76,10 +77,17 @@ class RegisterScreenState extends State<RegisterScreen> {
       }
 
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const ChatsScreen()),
-        (_) => false,
-      );
+      if (response.data["user"]["is_disabled"] == 1) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const DisactivatedAccountScreen()),
+          (_) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const ChatsScreen()),
+          (_) => false,
+        );
+      }
     } catch (e) {
       if (mounted)
         showAppSnackBar(context, cleanErrorMessage(e), isError: true);

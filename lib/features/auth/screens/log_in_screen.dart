@@ -5,6 +5,7 @@ import 'package:wilaya_illizi_chat/data/services/shared_preferences_service.dart
 import 'package:wilaya_illizi_chat/features/auth/screens/register_screen.dart';
 import 'package:wilaya_illizi_chat/features/chat/screens/change_pwd_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:wilaya_illizi_chat/features/chat/screens/disactivated_account.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_styles.dart';
@@ -61,7 +62,7 @@ class _LogInScreenState extends State<LogInScreen> {
       );
 
       if (response.statusCode == 200) {
-        print("response:::: ${response.data}");
+        // print("response:::: ${response.data}");
         await _auth.login(
           user: response.data["user"],
           token: response.data['token'],
@@ -73,7 +74,14 @@ class _LogInScreenState extends State<LogInScreen> {
         );
       }
       if (!mounted) return;
-      if (response.data["user"]["pwd_changable"] == 1) {
+      if (response.data["user"]["is_disabled"] == 1) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => const DisactivatedAccountScreen(),
+          ),
+          (_) => false,
+        );
+      } else if (response.data["user"]["pwd_changable"] == 1) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => const ChangePwdScreen(canignore: true),

@@ -20,7 +20,7 @@ class AuthService {
     } else {
       currentUser = null;
     }
-    print("currentuser id:::::: ${currentUser?.id}");
+    // print("currentuser id:::::: ${currentUser?.id}");
   }
 
   static Future<bool> setToken(String newToken) async {
